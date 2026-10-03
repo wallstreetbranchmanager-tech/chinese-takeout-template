@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Chinese Takeout Template</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Inter:wght@420;560;700&display=swap" rel="stylesheet" />
+<style>
+  :root { --orange:#e38b12; --ink:#222; --line:#e6e6e6; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Inter, system-ui, sans-serif; background:#ddd; color:var(--ink); }
+  button, input, select, textarea { font:inherit; }
+  .phone { width:min(440px,100%); margin:0 auto; background:#fff; min-height:100vh; }
+  .top { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--line); position:sticky; top:0; background:#fff; z-index:5; }
+  .logo { width:46px; height:46px; border-radius:50%; background:#e10600; color:#fff; display:grid; place-items:center; font-weight:700; font-size:13px; }
+  .word { font-weight:700; letter-spacing:.12em; font-size:16px; }
+  .word span { display:block; letter-spacing:.22em; font-size:12px; }
+  .menu-btn { margin-left:auto; border:0; background:transparent; cursor:pointer; font-weight:700; }
+  .hero { height:72vh; background:#1a120e center/cover no-repeat; display:grid; place-items:center; text-align:center; color:#fff; position:relative; }
+  .hero:after { content:""; position:absolute; inset:0; background:rgba(0,0,0,.45); }
+  .hero .in { position:relative; z-index:1; }
+  .hero h1 { font-family:"Libre Baskerville", serif; font-size:38px; margin:0 0 16px; }
+  .order-btn { background:var(--orange); color:#fff; border:0; border-radius:6px; padding:14px 32px; font-size:18px; font-weight:700; cursor:pointer; }
+  .bar { display:flex; align-items:center; padding:12px 14px; border-bottom:1px solid var(--line); position:sticky; top:0; background:#fff; z-index:4; }
+  .bar b { letter-spacing:.04em; }
+  .bar .cart { margin-left:auto; border:0; background:transparent; cursor:pointer; font-size:18px; }
+  .back { border:0; background:transparent; font-size:22px; cursor:pointer; }
+  .cat { background:#f7f7f7; padding:14px; border-bottom:1px solid var(--line); }
+  .cat h2 { margin:0; font-size:16px; }
+  .cat p { margin:6px 0 0; color:#777; font-size:13px; }
+  .item { display:flex; gap:10px; width:100%; text-align:left; padding:14px; border:0; border-bottom:1px solid var(--line); background:#fff; cursor:pointer; }
+  .item .name { flex:1; }
+  .zh { color:#888; display:block; }
+  .price { white-space:nowrap; }
+  h3.mod { margin:16px 14px 8px; font-size:16px; }
+  .opt { display:flex; gap:10px; align-items:center; margin:0 14px 8px; border:1px solid #ddd; padding:12px; }
+  .sticky { position:sticky; bottom:0; background:var(--orange); color:#fff; display:flex; }
+  .sticky .amt { padding:16px 18px; font-size:20px; font-weight:700; border-right:1px solid rgba(255,255,255,.35); }
+  .sticky button { flex:1; border:0; background:transparent; color:#fff; font-size:18px; font-weight:700; cursor:pointer; }
+  .line { padding:14px; border-bottom:1px solid var(--line); }
+  .mods { color:#666; font-size:13px; }
+  .sum { padding:8px 14px 100px; }
+  .sum div, .mods div { display:flex; justify-content:space-between; padding:4px 0; }
+  .min { background:#f3f3f3; text-align:center; padding:10px; margin:8px 0; font-weight:700; }
+  .hide { display:none; }
+  input, textarea { width:100%; border:1px solid #ddd; border-radius:6px; padding:11px; margin-top:6px; }
+  .brandbox { padding:14px; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <section id="home">
+    <div class="top">
+      <div class="logo" id="mark">林</div>
+      <div class="word" id="word">GOLDEN<span>WOK</span></div>
+      <button class="menu-btn" onclick="show('brand')">Rebrand</button>
+    </div>
+    <div class="hero" style="background-image:url('img/spread.jpg')">
+      <div class="in">
+        <h1 id="heroName">Golden Wok</h1>
+        <button class="order-btn" onclick="show('menu')">Online Order</button>
+      </div>
+    </div>
+  </section>
+  <section id="menu" class="hide">
+    <div class="bar">
+      <button class="back" onclick="show('home')">←</button>
+      <b id="menuName">GOLDEN WOK</b>
+      <button class="cart" onclick="openCart()">🛒 <span id="count">0</span></button>
+    </div>
+    <div class="cat">
+      <h2>DINNER COMBINATIONS</h2>
+      <p>Choice of rice, soup or egg roll or soda. Same shape as a foodbooking board. Swap the name, not the counter.</p>
+    </div>
+    <div id="list"></div>
+  </section>
+  <section id="detail" class="hide">
+    <div class="bar"><button class="back" onclick="show('menu')">←</button><b id="dTitle">Item</b></div>
+    <div id="mods"></div>
+    <div class="sticky"><div class="amt" id="dPrice">$0</div><button onclick="addCurrent()">Add to cart</button></div>
+  </section>
+  <section id="cart" class="hide">
+    <div class="bar"><button class="back" onclick="show('menu')">←</button><b>SHOPPING CART</b></div>
+    <div id="cartLines"></div>
+    <div class="sum" id="sum"></div>
+    <div class="sticky"><div class="amt" id="cartTotal">TOTAL<br>$0</div><button onclick="show('pay')">Go to Checkout</button></div>
+  </section>
+  <section id="pay" class="hide">
+    <div class="bar"><button class="back" onclick="openCart()">←</button><b>CHECKOUT</b></div>
+    <div class="brandbox">
+      <input id="cname" placeholder="Name" />
+      <input id="cphone" placeholder="Phone" />
+      <label><input type="radio" name="mode" checked onchange="mode='delivery'"> Delivery · free at $15</label>
+      <label><input type="radio" name="mode" onchange="mode='pickup'"> Pickup</label>
+      <input id="addr" placeholder="Street" />
+      <label><input type="radio" name="pay" checked onchange="pay='card'"> Card</label>
+      <label><input type="radio" name="pay" onchange="pay='cash'"> Cash</label>
+      <input id="card" placeholder="4242 4242 4242 4242" />
+      <input id="exp" placeholder="MM/YY" />
+      <p id="eta"></p>
+      <button class="order-btn" style="width:100%" onclick="place()">Pay and send</button>
+      <p id="done"></p>
+      <p><a href="restaurant.html">Kitchen desk</a></p>
+    </div>
+  </section>
+  <section id="brand" class="hide">
+    <div class="bar"><button class="back" onclick="show('home')">←</button><b>REBRAND</b></div>
+    <div class="brandbox">
+      <p>Paste the Yelp name. This is the template, not Best Kitchen.</p>
+      <input id="fName" placeholder="Restaurant name" />
+      <input id="fTown" placeholder="Town" />
+      <input id="fStreet" placeholder="Street" />
+      <input id="fPhone" placeholder="Phone" />
+      <button class="order-btn" onclick="saveBrand()">Apply</button>
+    </div>
+  </section>
+</div>
+<script>
+const TAX = 0.08625, MIN = 15;
+const SOUP = ["Wonton Soup 雲吞湯","Egg Drop Soup 蛋花湯","Hot & Sour Soup 酸辣湯","Egg Roll 春卷","Soda 汽水"];
+const RICE = ["White Rice 白饭","Brown Rice 减肥饭","Plain Fried Rice 净炒饭","Pork Fried Rice 叉烧炒饭","Chicken Fried Rice 鸡炒饭","Vegetable Fried Rice 菜炒饭"];
+const ITEMS = [
+  ["Brown Sauce Dinner Combination","宫保晚餐",10.95],
+  ["Garlic Sauce Dinner Combination","鱼香晚餐",10.95],
+  ["Bean Curd w. Mixed Vegetable","杂菜豆腐晚餐",10.95],
+  ["General Tso's Tofu Dinner","左豆腐晚餐",10.95],
+  ["Broccoli Dinner Combination","芥兰晚餐",11.25],
+  ["Mixed Vegetable Dinner","杂菜晚餐",11.25],
+  ["Lo Mein Dinner Combination","捞面晚餐",11.25],
+  ["Mei Fun Dinner Combination","米粉晚餐",11.25],
+  ["Egg Foo Young Dinner","蓉蛋晚餐",11.25],
+  ["Sweet & Sour Chicken Dinner","甜酸鸡晚餐",11.25],
+  ["Moo Goo Gai Pan Dinner","蘑菇鸡片晚餐",11.25],
+  ["Sesame Chicken Dinner","芝麻鸡晚餐",11.25],
+  ["General Tso's Chicken Dinner","左鸡晚餐",11.25],
+  ["Kung Pao Chicken Dinner","宫保鸡晚餐",11.25],
+  ["Curry Dinner Combination","咖喱晚餐",11.25],
+  ["Hunan Sauce Dinner","湖南汁晚餐",11.55],
+  ["Szechuan Sauce Dinner","四川汁晚餐",11.55]
+];
+const DEFAULTS = { name:"Golden Wok", town:"Anytown", street:"100 Main Street", phone:"(555) 014-0188" };
+let shop = Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem("gw-shop")||"{}"));
+let cart = [], current = null, mode = "delivery", pay = "card";
+function money(n){ return "$"+n.toFixed(2); }
+function paint(){
+  const bits = shop.name.toUpperCase().split(" ");
+  document.getElementById("word").innerHTML = (bits[0]||"WOK")+"<span>"+(bits.slice(1).join(" ")||"HOUSE")+"</span>";
+  document.getElementById("mark").textContent = shop.name.slice(0,1);
+  document.getElementById("heroName").textContent = shop.name;
+  document.getElementById("menuName").textContent = shop.name.toUpperCase();
+  document.title = shop.name+" | Online Order";
+}
+function show(id){ ["home","menu","detail","cart","pay","brand"].forEach(s=>document.getElementById(s).classList.toggle("hide", s!==id)); if(id==="menu") renderList(); if(id==="pay") document.getElementById("eta").textContent = eta(); if(id==="brand"){ document.getElementById("fName").value=shop.name; document.getElementById("fTown").value=shop.town; document.getElementById("fStreet").value=shop.street; document.getElementById("fPhone").value=shop.phone; } }
+function renderList(){
+  document.getElementById("list").innerHTML = ITEMS.map((it,i)=>`<button class="item" onclick="openItem(${i})"><div class="name">${it[0]}<span class="zh">${it[1]}</span></div><div class="price">${it[2].toFixed(2)}</div></button>`).join("");
+  document.getElementById("count").textContent = cart.reduce((s,i)=>s+i.qty,0);
+}
+function openItem(i){
+  current = { i, soup:SOUP[0], rice:RICE[0] };
+  const it = ITEMS[i];
+  document.getElementById("dTitle").textContent = it[0].toUpperCase()+" "+it[1];
+  document.getElementById("dPrice").textContent = money(it[2]);
+  document.getElementById("mods").innerHTML = `<h3 class="mod">Soup, Egg Roll or Soda 湯 (Required)</h3>`+SOUP.map(s=>`<label class="opt"><input type="radio" name="soup" ${s===SOUP[0]?"checked":""} onchange="current.soup=this.parentNode.innerText.trim()"> ${s}</label>`).join("")+`<h3 class="mod">Rice Choice (Required)</h3>`+RICE.map(s=>`<label class="opt"><input type="radio" name="rice" ${s===RICE[0]?"checked":""} onchange="current.rice=this.parentNode.innerText.trim()"> ${s}</label>`).join("");
+  show("detail");
+}
+function addCurrent(){ const it = ITEMS[current.i]; cart.push({ name:it[0], zh:it[1], price:it[2], soup:current.soup, rice:current.rice, qty:1 }); openCart(); }
+function openCart(){
+  document.getElementById("cartLines").innerHTML = cart.map((l,idx)=>`<div class="line"><b>1x ${l.name} ${l.zh}</b> ${l.price.toFixed(2)} <button onclick="cart.splice(${idx},1);openCart()">×</button><div class="mods"><div><span>${l.soup}</span></div><div><span>${l.rice}</span></div></div></div>`).join("")||"<p style='padding:14px'>Cart is empty.</p>";
+  const sub = cart.reduce((s,l)=>s+l.price,0), tax = sub*TAX;
+  document.getElementById("sum").innerHTML = `<div class="min">Minimum Order (Delivery) $15.00</div><div><span>Sub-Total</span><span>${money(sub)}</span></div><div><span>Sales tax (8.625%)</span><span>${money(tax)}</span></div><div><b>Total</b><b>${money(sub+tax)}</b></div>`;
+  document.getElementById("cartTotal").innerHTML = "TOTAL<br>"+money(sub+tax);
+  show("cart");
+}
+function eta(){ const rush=(new Date().getHours()>=17&&new Date().getHours()<=20)?10:0; const lo=(mode==="delivery"?30:18)+rush; return (mode==="delivery"?"Delivery ":"Pickup ")+lo+"–"+(lo+12)+" min"; }
+function luhn(num){ const s=(num||"").replace(/\D/g,""); if(s.length<13)return false; let sum=0,alt=false; for(let i=s.length-1;i>=0;i--){ let n=+s[i]; if(alt){n*=2;if(n>9)n-=9;} sum+=n; alt=!alt;} return sum%10===0; }
+function place(){
+  const sub = cart.reduce((s,l)=>s+l.price,0);
+  if (sub<MIN) return alert("No checkout under $15.");
+  if (!document.getElementById("cname").value || document.getElementById("cphone").value.length<7) return alert("Name and phone.");
+  if (mode==="delivery" && document.getElementById("addr").value.length<6) return alert("Need a street.");
+  if (pay==="card" && !luhn(document.getElementById("card").value)) return alert("Card failed.");
+  const ticket = { id:"GW-"+Math.floor(1000+Math.random()*9000), at:new Date().toLocaleString(), status:"new", shop:shop.name, mode, eta:eta(), pay, items:cart.map(i=>({...i})), total:sub+sub*TAX, name:document.getElementById("cname").value, phone:document.getElementById("cphone").value, addr:document.getElementById("addr").value };
+  const board = JSON.parse(localStorage.getItem("gw-tickets")||"[]"); board.unshift(ticket); localStorage.setItem("gw-tickets", JSON.stringify(board.slice(0,40)));
+  try { new BroadcastChannel("gw-desk").postMessage({type:"ticket"}); } catch(e){}
+  document.getElementById("done").textContent = ticket.id+" sent. "+ticket.eta+". Demo card, last four only. Kitchen desk is the other tab.";
+  cart = [];
+}
+function saveBrand(){
+  shop.name = document.getElementById("fName").value||DEFAULTS.name;
+  shop.town = document.getElementById("fTown").value||DEFAULTS.town;
+  shop.street = document.getElementById("fStreet").value||DEFAULTS.street;
+  shop.phone = document.getElementById("fPhone").value||DEFAULTS.phone;
+  localStorage.setItem("gw-shop", JSON.stringify(shop));
+  paint(); show("home");
+}
+paint();
+</script>
+</body>
+</html>
