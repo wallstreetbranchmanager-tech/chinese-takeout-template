@@ -18,14 +18,9 @@ const BOARD = "dqp98n0e";
 function slug(){ const shop = JSON.parse(localStorage.getItem("gw-shop")||"{}"); return (shop.name||"wok").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,12)||"wok"; }
 function kvGet(key){ return fetch("https://keyvalue.immanuel.co/api/KeyVal/GetValue/"+BOARD+"/"+key).then(r=>r.json()).catch(()=>""); }
 async function load(){
-  const ids = String(await kvGet("ids-"+slug())||"").split(",").filter(Boolean);
-  const rows = [];
-  for (const id of ids) {
-    const raw = await kvGet("t-"+slug()+"-"+id);
-    if (!raw) continue;
-    const t = typeof raw==="string" ? JSON.parse(raw) : raw;
-    if (t.mode==="delivery" && t.status!=="done") rows.push(t);
-  }
+  const res = await fetch("/api/orders?shop="+encodeURIComponent(slug()));
+  const data = await res.json();
+  const rows = (data.orders||[]).filter(t => t.mode==="delivery" && t.status!=="done");
   document.getElementById("list").innerHTML = rows.map(t=>`<article><h2>${t.id}</h2><p>${t.name}<br>${t.phone}<br>${t.addr}</p><p>${(t.items||[]).map(i=>i.q+" "+i.n).join("<br>")}</p><p>${t.payLabel} · $${Number(t.total||0).toFixed(2)} · tip $${Number(t.tip||0).toFixed(2)}</p><a href="https://maps.google.com/?q=${encodeURIComponent(t.addr)}">Map</a></article>`).join("") || "<p style='padding:12px'>No bags out.</p>";
 }
 load();

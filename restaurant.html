@@ -97,14 +97,9 @@ let primed = false;
 function slug(){ const shop = JSON.parse(localStorage.getItem("gw-shop")||"{}"); return (shop.name||"wok").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,12)||"wok"; }
 async function pull(){
   try {
-    const raw = await kvGet("ids-"+slug());
-    const ids = String(raw||"").split(",").filter(Boolean);
-    const orders = [];
-    for (const id of ids) {
-      const t = await kvGet("t-"+slug()+"-"+id);
-      if (!t) continue;
-      orders.push(typeof t==="string" ? JSON.parse(t) : t);
-    }
+    const res = await fetch("/api/orders?shop="+encodeURIComponent(slug()));
+    const data = await res.json();
+    const orders = data.orders || [];
     localStorage.setItem("gw-tickets", JSON.stringify(orders));
     orders.filter(t => t.status==="new" && (t.pay!=="card" || t.paid)).forEach(t => {
       if (!primed) { printed.add(t.id); return; }
@@ -154,19 +149,14 @@ function bump(id, status){
   const list = tickets();
   const hit = list.find(t=>t.id===id);
   if (!hit) return;
-  hit.status = status;
-  kvPut("t-"+slug()+"-"+id, JSON.stringify(hit)).then(()=>{
+  fetch("/api/orders", { method:"PATCH", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ shop: slug(), id, status }) }).then(()=>{
     if (status==="ready" && hit.phone) location.href = "sms:"+hit.phone+"?body="+encodeURIComponent((hit.shop||"Kitchen")+" "+hit.id+" is ready. "+(hit.mode==="delivery"?hit.addr:"Pickup"));
     pull();
   });
 }
 async function toggle86(name){
-  const key = "dead-"+slug();
-  const raw = await kvGet(key);
-  let dead = String(raw||"").split("|").filter(Boolean);
-  dead = dead.includes(name) ? dead.filter(x=>x!==name) : dead.concat(name);
-  await kvPut(key, dead.join("|"));
-  alert(name+" is "+(dead.includes(name)?"86":"back on"));
+  await fetch("/api/orders", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ action:"86", shop: slug(), name }) });
+  alert(name+" updated on the board");
 }
 function render(){
   const shop = JSON.parse(localStorage.getItem("gw-shop")||"{}");

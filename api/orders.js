@@ -1,31 +1,30 @@
-const OWNER = "wallstreetbranchmanager-tech";
-const REPO = "chinese-takeout-template";
-const PATH = "data/orders.json";
+const BOARD = "dqp98n0e";
 
-function headers() {
-  return {
-    Authorization: "Bearer " + process.env.GITHUB_TOKEN,
-    Accept: "application/vnd.github+json",
-    "User-Agent": "wok-desk"
-  };
+function slug(name) {
+  return String(name || "wok").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 12) || "wok";
 }
 
-async function readBoard() {
-  const res = await fetch("https://api.github.com/repos/" + OWNER + "/" + REPO + "/contents/" + PATH, { headers: headers() });
-  const body = await res.json();
-  if (!res.ok) throw new Error(body.message || "board read failed");
-  return { sha: body.sha, data: JSON.parse(Buffer.from(body.content, "base64").toString("utf8")) };
+async function kvGet(key) {
+  const res = await fetch("https://keyvalue.immanuel.co/api/KeyVal/GetValue/" + BOARD + "/" + key);
+  const text = await res.text();
+  try { return JSON.parse(text); } catch (e) { return text.replace(/^"|"$/g, ""); }
 }
 
-async function writeBoard(data, sha, message) {
-  const res = await fetch("https://api.github.com/repos/" + OWNER + "/" + REPO + "/contents/" + PATH, {
-    method: "PUT",
-    headers: Object.assign({ "Content-Type": "application/json" }, headers()),
-    body: JSON.stringify({ message, sha, content: Buffer.from(JSON.stringify(data, null, 2)).toString("base64") })
-  });
-  const body = await res.json();
-  if (!res.ok) throw new Error(body.message || "board write failed");
-  return body;
+async function kvPut(key, val) {
+  const url = "https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/" + BOARD + "/" + key + "/" + encodeURIComponent(val);
+  const res = await fetch(url, { method: "POST" });
+  if (!res.ok) throw new Error("board write failed");
+}
+
+async function ordersFor(shop) {
+  const ids = String(await kvGet("ids-" + shop) || "").split(",").filter(Boolean);
+  const orders = [];
+  for (const id of ids) {
+    const raw = await kvGet("t-" + shop + "-" + id);
+    if (!raw) continue;
+    orders.push(typeof raw === "string" ? JSON.parse(raw) : raw);
+  }
+  return orders;
 }
 
 async function stripeSession(ticket, origin) {
@@ -33,13 +32,13 @@ async function stripeSession(ticket, origin) {
   if (!key) return null;
   const params = new URLSearchParams();
   params.set("mode", "payment");
-  params.set("success_url", origin + "/paid.html?id=" + ticket.id + "&session_id={CHECKOUT_SESSION_ID}");
+  params.set("success_url", origin + "/paid.html?id=" + ticket.id + "&shop=" + ticket.slug + "&session_id={CHECKOUT_SESSION_ID}");
   params.set("cancel_url", origin + "/?pay=cancel");
   params.set("client_reference_id", ticket.id);
   params.set("line_items[0][quantity]", "1");
   params.set("line_items[0][price_data][currency]", "usd");
   params.set("line_items[0][price_data][unit_amount]", String(Math.round(ticket.total * 100)));
-  params.set("line_items[0][price_data][product_data][name]", ticket.shop + " " + ticket.id);
+  params.set("line_items[0][price_data][product_data][name]", (ticket.shop || "Order") + " " + ticket.id);
   const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",
     headers: { Authorization: "Bearer " + key, "Content-Type": "application/x-www-form-urlencoded" },
@@ -54,40 +53,49 @@ module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(204).end();
-  if (!process.env.GITHUB_TOKEN) return res.status(500).json({ error: "Kitchen board token is not set." });
   try {
+    const body = req.body || {};
+    const shop = slug(req.query.shop || body.shop || body.slug || (body.ticket && body.ticket.shop));
     if (req.method === "GET") {
-      const board = await readBoard();
-      return res.status(200).json(board.data);
+      const orders = await ordersFor(shop);
+      const dead = String(await kvGet("dead-" + shop) || "").split("|").filter(Boolean);
+      return res.status(200).json({ shop, orders, dead, card: Boolean(process.env.STRIPE_SECRET_KEY) });
+    }
+    if (req.method === "POST" && body.action === "86") {
+      const raw = String(await kvGet("dead-" + shop) || "");
+      let dead = raw.split("|").filter(Boolean);
+      dead = dead.includes(body.name) ? dead.filter(x => x !== body.name) : dead.concat(body.name);
+      await kvPut("dead-" + shop, dead.join("|"));
+      return res.status(200).json({ ok: true, dead });
     }
     if (req.method === "POST") {
-      const ticket = req.body && req.body.ticket ? req.body.ticket : req.body;
+      const ticket = body.ticket || body;
       if (!ticket || !ticket.id) return res.status(400).json({ error: "No ticket." });
       if ((ticket.sub || 0) < 15) return res.status(400).json({ error: "Under $15." });
+      ticket.slug = shop;
       ticket.status = "new";
       const origin = req.headers.origin || "https://chinese-takeout-template.vercel.app";
+      let checkoutUrl = null;
       if (ticket.pay === "card") {
         const session = await stripeSession(ticket, origin);
-        if (!session) return res.status(402).json({ error: "Card processing is not connected. Add STRIPE_SECRET_KEY on Vercel. Cash still prints. I will not fake a charge." });
+        if (!session) return res.status(402).json({ error: "Card processor is not connected. Cash works. I will not fake a charge." });
         ticket.payLabel = "Card pending";
         ticket.paid = false;
         ticket.stripeSession = session.id;
-        const board = await readBoard();
-        board.data.orders = [ticket].concat(board.data.orders || []).slice(0, 40);
-        await writeBoard(board.data, board.sha, "order " + ticket.id + " pending card");
-        return res.status(200).json({ ok: true, checkoutUrl: session.url, id: ticket.id });
+        checkoutUrl = session.url;
+      } else {
+        ticket.payLabel = "CASH COLLECT";
+        ticket.paid = false;
       }
-      ticket.payLabel = "CASH COLLECT";
-      ticket.paid = false;
-      const board = await readBoard();
-      board.data.orders = [ticket].concat(board.data.orders || []).slice(0, 40);
-      await writeBoard(board.data, board.sha, "order " + ticket.id + " cash");
-      return res.status(200).json({ ok: true, id: ticket.id });
+      await kvPut("t-" + shop + "-" + ticket.id, JSON.stringify(ticket));
+      const ids = String(await kvGet("ids-" + shop) || "").split(",").filter(Boolean).filter(x => x !== ticket.id);
+      ids.unshift(ticket.id);
+      await kvPut("ids-" + shop, ids.slice(0, 25).join(","));
+      return res.status(200).json({ ok: true, id: ticket.id, checkoutUrl });
     }
     if (req.method === "PATCH") {
-      const body = req.body || {};
-      const board = await readBoard();
-      const hit = (board.data.orders || []).find(t => t.id === body.id);
+      const orders = await ordersFor(shop);
+      const hit = orders.find(t => t.id === body.id);
       if (!hit) return res.status(404).json({ error: "No ticket." });
       if (body.confirmCard) {
         const check = await fetch("https://api.stripe.com/v1/checkout/sessions/" + body.sessionId, { headers: { Authorization: "Bearer " + process.env.STRIPE_SECRET_KEY } });
@@ -97,7 +105,7 @@ module.exports = async function handler(req, res) {
         hit.payLabel = "CARD PAID";
         hit.status = "new";
       } else if (body.status) hit.status = body.status;
-      await writeBoard(board.data, board.sha, "ticket " + hit.id);
+      await kvPut("t-" + shop + "-" + hit.id, JSON.stringify(hit));
       return res.status(200).json({ ok: true, ticket: hit });
     }
     return res.status(405).json({ error: "No." });

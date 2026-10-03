@@ -369,16 +369,15 @@ function openNow(){
   return "";
 }
 async function deadNames(){
-  const raw = await kvGet("dead-"+shopSlug());
-  return String(raw||"").split("|").filter(Boolean);
+  const res = await fetch("/api/orders?shop="+encodeURIComponent(shopSlug()));
+  const data = await res.json();
+  return data.dead || [];
 }
 async function saveTicket(ticket){
-  const slug = shopSlug();
-  await kvPut("t-"+slug+"-"+ticket.id, JSON.stringify(ticket));
-  const raw = await kvGet("ids-"+slug);
-  const ids = String(raw||"").split(",").filter(Boolean).filter(x=>x!==ticket.id);
-  ids.unshift(ticket.id);
-  await kvPut("ids-"+slug, ids.slice(0, 25).join(","));
+  const res = await fetch("/api/orders", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ shop: shopSlug(), ticket }) });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Kitchen did not get it.");
+  return data;
 }
 async function place(){
   const closed = openNow();
@@ -396,20 +395,17 @@ async function place(){
   if (!name || phone.length<7) return alert("Name and phone.");
   if (mode==="delivery" && addr.length<6) return alert("Need a street.");
   const ticket = { id:"GW-"+Math.floor(1000+Math.random()*9000), at:new Date().toLocaleTimeString(), ts:Date.now(), status:"new", shop:shop.name, slug:shopSlug(), mode, eta:eta(), pay, note:document.getElementById("note").value.trim().slice(0,80), items:cart.map(i=>({n:i.name,q:i.qty,s:i.soup||""})), sub, tip, total:Math.round((sub+sub*TAX+tip)*100)/100, name, phone, addr: mode==="delivery"?addr:"PICKUP", paid:false, payLabel: pay==="card"?"CARD PENDING":"CASH COLLECT" };
-  if (pay==="card"){
-    const res = await fetch("/api/orders", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ ticket }) });
-    const data = await res.json().catch(()=>({}));
-    if (data.checkoutUrl) { location.href = data.checkoutUrl; return; }
-    return alert(data.error || "Card processor is not connected. Cash works. I will not fake a charge.");
-  }
-  await saveTicket(ticket);
+  let data;
+  try { data = await saveTicket(ticket); } catch (e) { return alert(e.message); }
+  if (data.checkoutUrl) { location.href = data.checkoutUrl; return; }
   cart = []; localStorage.setItem("gw-cart","[]");
   watch(ticket.id);
 }
 async function watch(id){
   show("track");
-  const raw = await kvGet("t-"+shopSlug()+"-"+id);
-  const t = typeof raw==="string" ? JSON.parse(raw||"{}") : raw;
+  const res = await fetch("/api/orders?shop="+encodeURIComponent(shopSlug()));
+  const data = await res.json();
+  const t = (data.orders||[]).find(x=>x.id===id) || {};
   const label = { new:"Kitchen has it", wok:"On the wok", ready:"Ready", done:"Done" }[t.status] || "Sent";
   document.getElementById("trackBox").innerHTML = `<h2>${t.id||id}</h2><p>${label}</p><p>${t.eta||""}</p><p>${t.payLabel||""}</p><p>Tip $${Number(t.tip||0).toFixed(2)}</p><p>${t.addr||""}</p><p>${(t.items||[]).map(i=>i.q+" × "+i.n).join("<br>")}</p><p><b>$${Number(t.total||0).toFixed(2)}</b></p>`;
   if (t.status!=="done") setTimeout(()=>watch(id), 5000);
