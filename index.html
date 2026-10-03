@@ -260,28 +260,66 @@ document.getElementById("chips").addEventListener("click", e => {
 });
 function go(id, btn){ document.querySelectorAll(".cats button").forEach(b=>b.classList.remove("on")); btn.classList.add("on"); document.getElementById(id).scrollIntoView({behavior:"smooth", block:"start"}); }
 function optionRow(group, label, zh, checked){
-  return `<label class="opt"><input type="radio" name="${group}" ${checked?"checked":""} onchange="current.${group}='${label} ${zh}'"><span>${label}<small>${zh}</small></span></label>`;
+  const safe = String(label).replace(/'/g, "");
+  return `<label class="opt"><input type="radio" name="${group}" ${checked?"checked":""} onchange="current.${group}='${safe}'"><span>${label}<small>${zh||""}</small></span></label>`;
+}
+function rows(group, title, choices){
+  return `<h3 class="mod">${title}</h3>`+choices.map((c,n)=>optionRow(group, c[0], c[1]||"", n===0)).join("");
 }
 function openItem(catId, index){
   const cat = MENU.find(c=>c.id===catId);
   const it = cat.items[index];
   if (!it) return;
-  current = { cat:cat.title, combo:!!cat.combo, name:it[0], zh:it[1], price:it[2], spicy:!!it[3], soup:SOUPS[3].join(" "), rice:RICES[0].join(" "), spice:"Mild" };
+  current = { cat:cat.id, name:it[0], zh:it[1], price:it[2], soup:"", rice:"", spice:"", size:"", sauce:"", gravy:"" };
   document.getElementById("dTitle").textContent = (it[0]+" "+it[1]).toUpperCase();
   document.getElementById("dPrice").textContent = money(it[2]);
   let html = "";
-  if (cat.combo){
-    html += `<h3 class="mod">Soup, Egg Roll or Soda Choice (Required)</h3>`+SOUPS.map((s,n)=>optionRow("soup", s[0], s[1], n===3)).join("");
-    html += `<h3 class="mod">Rice Choice (Required)</h3>`+RICES.map((s,n)=>optionRow("rice", s[0], s[1], n===0)).join("");
-  } else if (cat.id==="poultry" || cat.id==="beef" || cat.id==="pork" || cat.id==="sea"){
-    html += `<h3 class="mod">Spice</h3>`+["Mild","Medium","Hot"].map((s,n)=>`<label class="opt"><input type="radio" name="spice" ${n===0?"checked":""} onchange="current.spice='${s}'"><span>${s}</span></label>`).join("");
-    html += `<p style="padding:0 14px;color:#777">White rice included. Extra sauce goes in the note.</p>`;
+  if (cat.id==="dinner" || cat.id==="lunch"){
+    current.soup = "Egg Roll";
+    current.rice = cat.id==="lunch" ? "Pork Fried Rice" : "White Rice";
+    html += rows("soup", "Soup, Egg Roll or Soda (Required)", SOUPS);
+    html += rows("rice", cat.id==="lunch" ? "Rice included" : "Rice Choice (Required)", cat.id==="lunch" ? [["Pork Fried Rice","叉烧炒饭"]] : RICES);
   }
-  document.getElementById("mods").innerHTML = html;
+  if (cat.id==="apps"){
+    current.sauce = "Duck sauce";
+    if (/wing/i.test(it[0])) html += rows("sauce", "Wing style", [["Salt and pepper",""],["Hot",""],["BBQ",""],["Plain",""]]);
+    else if (/rib/i.test(it[0])) html += rows("sauce", "Rib sauce", [["House BBQ",""],["Duck sauce",""],["Hot mustard",""],["Dry",""]]);
+    else html += rows("sauce", "Sauce on the side", [["Duck sauce",""],["Hot mustard",""],["Duck and mustard",""],["Sweet chili",""],["None",""]]);
+  }
+  if (cat.id==="soup"){
+    current.size = /quart/i.test(it[0]) ? "Quart" : "Pint";
+    if (!/quart/i.test(it[0])) html += rows("size", "Size", [["Pint",""],["Quart","+$3.25"]]);
+    if (/hot/i.test(it[0])) html += rows("spice", "Heat", [["Mild",""],["Medium",""],["Hot",""]]);
+  }
+  if (cat.id==="rice" || cat.id==="mein" || cat.id==="chow"){
+    current.size = /quart/i.test(it[0]) ? "Quart" : "Pint";
+    if (!/quart/i.test(it[0])) html += rows("size", "Size", [["Pint",""],["Quart","+$4"]]);
+    html += rows("sauce", "On the side", [["No extra sauce",""],["Duck sauce",""],["Hot sauce",""],["Gravy",""]]);
+  }
+  if (cat.id==="foo"){
+    current.gravy = "Gravy on the side";
+    html += rows("gravy", "Gravy", [["Gravy on the side",""],["Gravy on top",""],["No gravy",""]]);
+  }
+  if (cat.id==="poultry" || cat.id==="beef" || cat.id==="pork" || cat.id==="sea" || cat.id==="veg"){
+    current.spice = "Mild";
+    current.rice = "White Rice";
+    current.sauce = "Sauce on the dish";
+    html += rows("spice", "Spice", [["Mild",""],["Medium",""],["Hot",""]]);
+    html += rows("rice", "Rice", [["White Rice","白饭"],["Brown Rice","减肥饭"],["No rice",""]]);
+    html += rows("sauce", "Sauce", [["Sauce on the dish",""],["Sauce on the side",""],["Extra sauce",""],["Light sauce",""]]);
+  }
+  if (cat.id==="side" && /soda/i.test(it[0])){
+    current.sauce = "Coke";
+    html += rows("sauce", "Soda", [["Coke",""],["Diet Coke",""],["Sprite",""],["Ginger ale",""]]);
+  }
+  document.getElementById("mods").innerHTML = html || "<p style='padding:14px;color:#777'>No choice on this one. Add it.</p>";
   show("detail");
 }
 function addCurrent(){
-  cart.push({ name:current.name, zh:current.zh, price:current.price, qty:1, soup:current.combo?current.soup:"", rice:current.combo?current.rice:"", spice:current.combo?"":current.spice, cat:current.cat });
+  let price = current.price;
+  if (current.size==="Quart" && !/quart/i.test(current.name)) price += current.cat==="soup" ? 3.25 : 4;
+  const bits = [current.soup, current.rice, current.spice, current.size, current.sauce, current.gravy].filter(Boolean);
+  cart.push({ name:current.name, zh:current.zh, price, qty:1, soup:bits.join(" · "), rice:"", spice:"", cat:current.cat });
   localStorage.setItem("gw-cart", JSON.stringify(cart));
   openCart();
 }
