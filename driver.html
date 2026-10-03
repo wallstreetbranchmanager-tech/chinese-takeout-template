@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Driver</title>
+<style>
+  body { font-family: system-ui, sans-serif; background:#111; color:#fff; margin:0; }
+  article { background:#fff; color:#111; margin:12px; padding:12px; border-radius:12px; }
+  a { color:#f4d7a1; }
+</style>
+</head>
+<body>
+<p style="padding:12px">Delivery bags only. Same shop name as the order page. <a href="restaurant.html">Kitchen</a></p>
+<div id="list"></div>
+<script>
+const BOARD = "dqp98n0e";
+function slug(){ const shop = JSON.parse(localStorage.getItem("gw-shop")||"{}"); return (shop.name||"wok").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,12)||"wok"; }
+function kvGet(key){ return fetch("https://keyvalue.immanuel.co/api/KeyVal/GetValue/"+BOARD+"/"+key).then(r=>r.json()).catch(()=>""); }
+async function load(){
+  const ids = String(await kvGet("ids-"+slug())||"").split(",").filter(Boolean);
+  const rows = [];
+  for (const id of ids) {
+    const raw = await kvGet("t-"+slug()+"-"+id);
+    if (!raw) continue;
+    const t = typeof raw==="string" ? JSON.parse(raw) : raw;
+    if (t.mode==="delivery" && t.status!=="done") rows.push(t);
+  }
+  document.getElementById("list").innerHTML = rows.map(t=>`<article><h2>${t.id}</h2><p>${t.name}<br>${t.phone}<br>${t.addr}</p><p>${(t.items||[]).map(i=>i.q+" "+i.n).join("<br>")}</p><p>${t.payLabel} · $${Number(t.total||0).toFixed(2)} · tip $${Number(t.tip||0).toFixed(2)}</p><a href="https://maps.google.com/?q=${encodeURIComponent(t.addr)}">Map</a></article>`).join("") || "<p style='padding:12px'>No bags out.</p>";
+}
+load();
+setInterval(load, 8000);
+</script>
+</body>
+</html>

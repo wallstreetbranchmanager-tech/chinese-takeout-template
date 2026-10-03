@@ -61,6 +61,8 @@
     <div class="stat"><b id="nWok">0</b><span>On the wok</span></div>
     <div class="stat"><b id="nReady">0</b><span>Ready</span></div>
     <div class="stat"><b id="nMoney">$0</b><span>Today</span></div>
+    <div class="stat"><b id="nCash">$0</b><span>Cash</span></div>
+    <div class="stat"><b id="nCard">$0</b><span>Card</span></div>
   </section>
   <section class="board">
     <div class="col"><h2>New</h2><div id="col-new"></div></div>
@@ -90,13 +92,14 @@ function kvGet(key){ return fetch("https://keyvalue.immanuel.co/api/KeyVal/GetVa
 function kvPut(key, val){ return fetch("https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/"+BOARD+"/"+key+"/"+encodeURIComponent(val), { method:"POST" }); }
 let printed = new Set();
 let primed = false;
+function slug(){ const shop = JSON.parse(localStorage.getItem("gw-shop")||"{}"); return (shop.name||"wok").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,12)||"wok"; }
 async function pull(){
   try {
-    const raw = await kvGet("ids");
+    const raw = await kvGet("ids-"+slug());
     const ids = String(raw||"").split(",").filter(Boolean);
     const orders = [];
     for (const id of ids) {
-      const t = await kvGet("t-"+id);
+      const t = await kvGet("t-"+slug()+"-"+id);
       if (!t) continue;
       orders.push(typeof t==="string" ? JSON.parse(t) : t);
     }
@@ -111,26 +114,16 @@ async function pull(){
   } catch (e) {}
   render();
 }
+function sheet(title, t){
+  const lines = (t.items||[]).map(i => `${i.q||i.qty||1}  ${i.n||i.name}${i.s||i.soup?"\n   "+(i.s||i.soup):""}`).join("\n");
+  const pay = t.paid ? "CARD PAID" : "CASH COLLECT";
+  return `${title}\n${t.shop||""}\n${t.id}  ${t.at||""}\n${(t.mode||"").toUpperCase()}  ${t.eta||""}\n\n${lines}\n\n${pay}\nTIP $${Number(t.tip||0).toFixed(2)}\n${t.name||""}\n${t.phone||""}\n${t.addr||""}\n${t.note||""}\n\nTOTAL $${Number(t.total||0).toFixed(2)}\n`;
+}
 function printTicket(t){
-  const lines = (t.items||[]).map(i => `${i.q||i.qty||1}  ${i.n||i.name}  ${i.zh||""}${i.s||i.soup?"\n   "+(i.s||i.soup):""}${i.r||i.rice?"\n   "+(i.r||i.rice):""}`).join("\n");
-  const pay = t.paid || t.pay==="card" ? "CARD PAID" : "CASH COLLECT";
   const w = window.open("", "ticket", "width=420,height=700");
   if (!w) return alert("Popup blocked. Allow popups so the ticket can print.");
-  w.document.write(`<pre style="font:16px/1.35 monospace">KITCHEN TICKET
-${t.shop||""}
-${t.id}  ${t.at||""}
-${(t.mode||"").toUpperCase()}  ${t.eta||""}
-
-${lines}
-
-${pay}
-${t.name||""}
-${t.phone||""}
-${t.addr||""}
-${t.note||""}
-
-TOTAL $${Number(t.total||0).toFixed(2)}
-</pre>`);
+  const driver = t.mode==="delivery" ? "\n\n"+sheet("DRIVER COPY", t) : "";
+  w.document.write(`<pre style="font:15px/1.3 monospace">${sheet("KITCHEN", t)}${driver}</pre>`);
   w.document.close();
   w.focus();
   w.print();
@@ -140,7 +133,18 @@ function bump(id, status){
   const hit = list.find(t=>t.id===id);
   if (!hit) return;
   hit.status = status;
-  kvPut("t-"+id, JSON.stringify(hit)).then(()=>pull());
+  kvPut("t-"+slug()+"-"+id, JSON.stringify(hit)).then(()=>{
+    if (status==="ready" && hit.phone) location.href = "sms:"+hit.phone+"?body="+encodeURIComponent((hit.shop||"Kitchen")+" "+hit.id+" is ready. "+(hit.mode==="delivery"?hit.addr:"Pickup"));
+    pull();
+  });
+}
+async function toggle86(name){
+  const key = "dead-"+slug();
+  const raw = await kvGet(key);
+  let dead = String(raw||"").split("|").filter(Boolean);
+  dead = dead.includes(name) ? dead.filter(x=>x!==name) : dead.concat(name);
+  await kvPut(key, dead.join("|"));
+  alert(name+" is "+(dead.includes(name)?"86":"back on"));
 }
 function render(){
   const shop = JSON.parse(localStorage.getItem("gw-shop")||"{}");
@@ -158,12 +162,14 @@ function render(){
   document.getElementById("nReady").textContent = cols.ready.length;
   const today = list.filter(t=> new Date(t.ts||Date.now()).toDateString()===new Date().toDateString());
   document.getElementById("nMoney").textContent = "$"+today.reduce((s,t)=>s+(t.total||0),0).toFixed(0);
+  document.getElementById("nCash").textContent = "$"+today.filter(t=>t.pay!=="card").reduce((s,t)=>s+(t.total||0),0).toFixed(0);
+  document.getElementById("nCard").textContent = "$"+today.filter(t=>t.paid).reduce((s,t)=>s+(t.total||0),0).toFixed(0);
 }
 function card(t){
   const lines = (t.items||[]).map(i=>`${i.q||i.qty||1} × ${i.n||i.name} ${i.zh||""}${i.s||i.soup?"<br>"+(i.s||i.soup):""}${i.r||i.rice?"<br>"+(i.r||i.rice):""}`).join("<br>");
   const next = t.status==="new" ? "wok" : t.status==="wok" ? "ready" : t.status==="ready" ? "done" : "";
   const label = t.status==="new" ? "On the wok" : t.status==="wok" ? "Ready" : t.status==="ready" ? "Done" : "";
-  return `<article class="ticket"><h3>${t.id}</h3><div class="meta">${t.at||""}<br>${(t.mode||"").toUpperCase()} · ${t.eta||""}<br>${t.name||""} · ${t.phone||""}<br>${t.addr||""}<br>${t.payLabel||t.pay||""}</div><div class="items">${lines}</div>${t.note?`<div class="note">${t.note}</div>`:""}<b>$${(t.total||0).toFixed(2)}</b><div class="row" style="margin-top:8px">${next?`<button onclick="bump('${t.id}','${next}')">${label}</button>`:""}</div></article>`;
+  return `<article class="ticket"><h3>${t.id}</h3><div class="meta">${t.at||""}<br>${(t.mode||"").toUpperCase()} · ${t.eta||""}<br>${t.name||""} · ${t.phone||""}<br>${t.addr||""}<br>${t.payLabel||t.pay||""} · tip $${Number(t.tip||0).toFixed(2)}</div><div class="items">${lines}</div>${t.note?`<div class="note">${t.note}</div>`:""}<b>$${(t.total||0).toFixed(2)}</b><div class="row" style="margin-top:8px">${next?`<button onclick="bump('${t.id}','${next}')">${label}</button>`:""}<button onclick="toggle86('${(t.items[0]&&(t.items[0].n||t.items[0].name)||"").replace(/'/g,"")}')">86 first item</button></div></article>`;
 }
 setInterval(pull, 4000);
 if (sessionStorage.getItem("gw-desk-open")==="1") { document.getElementById("gate").style.display="none"; document.getElementById("app").style.display="block"; pull(); }

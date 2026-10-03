@@ -113,6 +113,14 @@
       <input id="card" placeholder="4242 4242 4242 4242" />
       <input id="exp" placeholder="MM/YY" />
       <textarea id="note" rows="2" placeholder="No onion, extra sauce, spice"></textarea>
+      <label>Tip
+        <select id="tip">
+          <option value="0">No tip</option>
+          <option value="2">$2</option>
+          <option value="3">$3</option>
+          <option value="5">$5</option>
+        </select>
+      </label>
       <p id="eta"></p>
       <button class="order-btn" style="width:100%" onclick="place()">Pay and send</button>
       <p id="done"></p>
@@ -236,7 +244,7 @@ function paint(){
 }
 function show(id){
   ["home","menu","detail","cart","pay","brand","track"].forEach(s=>document.getElementById(s).classList.toggle("hide", s!==id));
-  if (id==="menu") renderList();
+  if (id==="menu") { renderList(); deadNames().then(dead => { document.querySelectorAll(".item").forEach(b => { if (dead.includes(b.querySelector(".name").childNodes[0].textContent.trim())) b.remove(); }); }); }
   if (id==="pay") document.getElementById("eta").textContent = eta();
   if (id==="brand"){ document.getElementById("fName").value=shop.name; document.getElementById("fTown").value=shop.town; document.getElementById("fStreet").value=shop.street; document.getElementById("fPhone").value=shop.phone; }
 }
@@ -353,22 +361,41 @@ function installApp(){
   alert("On iPhone: Share, Add to Home Screen. On Android: browser menu, Install app.");
 }
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+function shopSlug(){ return (shop.name||"wok").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,12)||"wok"; }
+function openNow(){
+  const d = new Date(), day = d.getDay(), hr = d.getHours()+d.getMinutes()/60;
+  if (day===1) return "Monday. Closed.";
+  if (hr<11 || hr>=22) return "Closed. Open 11 to 10.";
+  return "";
+}
+async function deadNames(){
+  const raw = await kvGet("dead-"+shopSlug());
+  return String(raw||"").split("|").filter(Boolean);
+}
 async function saveTicket(ticket){
-  await kvPut("t-"+ticket.id, JSON.stringify(ticket));
-  const raw = await kvGet("ids");
+  const slug = shopSlug();
+  await kvPut("t-"+slug+"-"+ticket.id, JSON.stringify(ticket));
+  const raw = await kvGet("ids-"+slug);
   const ids = String(raw||"").split(",").filter(Boolean).filter(x=>x!==ticket.id);
   ids.unshift(ticket.id);
-  await kvPut("ids", ids.slice(0, 25).join(","));
+  await kvPut("ids-"+slug, ids.slice(0, 25).join(","));
 }
 async function place(){
+  const closed = openNow();
+  if (closed) return alert(closed);
+  const dead = await deadNames();
+  if (cart.some(i=>dead.includes(i.name))) return alert("Something in the cart is 86. Take it off.");
+  const hr = new Date().getHours()+new Date().getMinutes()/60;
+  if (cart.some(i=>i.cat==="lunch") && (hr<11 || hr>=15)) return alert("Lunch is 11 to 3.");
   const sub = cart.reduce((s,l)=>s+l.price*l.qty,0);
   if (sub<MIN) return alert("No checkout under $15.");
   const name = document.getElementById("cname").value.trim();
   const phone = document.getElementById("cphone").value.trim();
   const addr = document.getElementById("addr").value.trim();
+  const tip = Number((document.getElementById("tip")||{}).value)||0;
   if (!name || phone.length<7) return alert("Name and phone.");
   if (mode==="delivery" && addr.length<6) return alert("Need a street.");
-  const ticket = { id:"GW-"+Math.floor(1000+Math.random()*9000), at:new Date().toLocaleTimeString(), ts:Date.now(), status:"new", shop:shop.name, mode, eta:eta(), pay, note:document.getElementById("note").value.trim().slice(0,80), items:cart.map(i=>({n:i.name,q:i.qty,s:i.soup||"",r:i.rice||""})), sub, total:Math.round((sub+sub*TAX)*100)/100, name, phone, addr: mode==="delivery"?addr:"PICKUP", paid:false, payLabel: pay==="card"?"CARD PENDING":"CASH COLLECT" };
+  const ticket = { id:"GW-"+Math.floor(1000+Math.random()*9000), at:new Date().toLocaleTimeString(), ts:Date.now(), status:"new", shop:shop.name, slug:shopSlug(), mode, eta:eta(), pay, note:document.getElementById("note").value.trim().slice(0,80), items:cart.map(i=>({n:i.name,q:i.qty,s:i.soup||""})), sub, tip, total:Math.round((sub+sub*TAX+tip)*100)/100, name, phone, addr: mode==="delivery"?addr:"PICKUP", paid:false, payLabel: pay==="card"?"CARD PENDING":"CASH COLLECT" };
   if (pay==="card"){
     const res = await fetch("/api/orders", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ ticket }) });
     const data = await res.json().catch(()=>({}));
@@ -381,10 +408,10 @@ async function place(){
 }
 async function watch(id){
   show("track");
-  const raw = await kvGet("t-"+id);
+  const raw = await kvGet("t-"+shopSlug()+"-"+id);
   const t = typeof raw==="string" ? JSON.parse(raw||"{}") : raw;
   const label = { new:"Kitchen has it", wok:"On the wok", ready:"Ready", done:"Done" }[t.status] || "Sent";
-  document.getElementById("trackBox").innerHTML = `<h2>${t.id||id}</h2><p>${label}</p><p>${t.eta||""}</p><p>${t.payLabel||""}</p><p>${t.addr||""}</p><p>${(t.items||[]).map(i=>i.q+" × "+i.n).join("<br>")}</p><p><b>$${Number(t.total||0).toFixed(2)}</b></p>`;
+  document.getElementById("trackBox").innerHTML = `<h2>${t.id||id}</h2><p>${label}</p><p>${t.eta||""}</p><p>${t.payLabel||""}</p><p>Tip $${Number(t.tip||0).toFixed(2)}</p><p>${t.addr||""}</p><p>${(t.items||[]).map(i=>i.q+" × "+i.n).join("<br>")}</p><p><b>$${Number(t.total||0).toFixed(2)}</b></p>`;
   if (t.status!=="done") setTimeout(()=>watch(id), 5000);
 }
 function saveBrand(){
