@@ -119,7 +119,26 @@ function sheet(title, t){
 function receipt(t){
   const items = (t.items||[]).map(i => (i.q||1)+" "+(i.n||i.name)+(i.s?"\n  "+i.s:"")).join("\n");
   const pay = t.paid ? "CARD PAID" : "CASH COLLECT";
-  return [t.shop||"KITCHEN", t.id+"  "+(t.at||""), (t.mode||"").toUpperCase()+"  "+(t.eta||""), "--------------------------------", items, "--------------------------------", pay, "TIP $"+Number(t.tip||0).toFixed(2), t.name||"", t.phone||"", t.addr||"", t.note||"", "TOTAL $"+Number(t.total||0).toFixed(2), "", ""].join("\n");
+  const who = t.name || "NO NAME";
+  const where = t.mode==="delivery" ? (t.addr || "NO ADDRESS") : "PICKUP";
+  return [
+    "ORDER "+(t.id||"NO NUMBER"),
+    who,
+    where,
+    t.phone||"",
+    t.shop||"KITCHEN",
+    (t.mode||"").toUpperCase()+"  "+(t.eta||""),
+    t.at||"",
+    "--------------------------------",
+    items,
+    "--------------------------------",
+    pay,
+    "TIP $"+Number(t.tip||0).toFixed(2),
+    t.note||"",
+    "TOTAL $"+Number(t.total||0).toFixed(2),
+    "",
+    ""
+  ].filter(x => x!==undefined).join("\n");
 }
 async function qzPrint(text){
   try {
