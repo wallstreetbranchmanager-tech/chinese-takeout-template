@@ -155,12 +155,17 @@ function renderList(){
   document.getElementById("list").innerHTML = ITEMS.map((it,i)=>`<button class="item" onclick="openItem(${i})"><div class="name">${it[0]}<span class="zh">${it[1]}</span></div><div class="price">${it[2].toFixed(2)}</div></button>`).join("");
   document.getElementById("count").textContent = cart.reduce((s,i)=>s+i.qty,0);
 }
+function optionRow(group, label, zh, checked){
+  return `<label class="opt"><input type="radio" name="${group}" ${checked?"checked":""} onchange="current.${group}='${label} ${zh}'"><span>${label}<small>${zh}</small></span></label>`;
+}
 function openItem(i){
   current = { i, soup:SOUP[0], rice:RICE[0] };
   const it = ITEMS[i];
-  document.getElementById("dTitle").textContent = it[0].toUpperCase()+" "+it[1];
+  document.getElementById("dTitle").textContent = (it[0]+" "+it[1]).toUpperCase();
   document.getElementById("dPrice").textContent = money(it[2]);
-  document.getElementById("mods").innerHTML = `<h3 class="mod">Soup, Egg Roll or Soda 湯 (Required)</h3>`+SOUP.map(s=>`<label class="opt"><input type="radio" name="soup" ${s===SOUP[0]?"checked":""} onchange="current.soup=this.parentNode.innerText.trim()"> ${s}</label>`).join("")+`<h3 class="mod">Rice Choice (Required)</h3>`+RICE.map(s=>`<label class="opt"><input type="radio" name="rice" ${s===RICE[0]?"checked":""} onchange="current.rice=this.parentNode.innerText.trim()"> ${s}</label>`).join("");
+  const soups = [["Wonton Soup","雲吞湯"],["Egg Drop Soup","蛋花湯"],["Hot & Sour Soup","酸辣湯"],["Egg Roll","春卷"],["Soda","汽水"]];
+  const rices = [["White Rice","白饭"],["Brown Rice","减肥饭"],["Plain Fried Rice","净炒饭"],["Pork Fried Rice","叉烧炒饭"],["Chicken Fried Rice","鸡炒饭"],["Vegetable Fried Rice","菜炒饭"]];
+  document.getElementById("mods").innerHTML = `<h3 class="mod">Soup, Egg Roll or Soda Choice (Required)</h3>`+soups.map((s,n)=>optionRow("soup", s[0], s[1], n===3)).join("")+`<h3 class="mod">Rice Choice (Required)</h3>`+rices.map((s,n)=>optionRow("rice", s[0], s[1], n===0)).join("");
   show("detail");
 }
 function addCurrent(){ const it = ITEMS[current.i]; cart.push({ name:it[0], zh:it[1], price:it[2], soup:current.soup, rice:current.rice, qty:1 }); openCart(); }
