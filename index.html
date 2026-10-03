@@ -396,7 +396,7 @@ async function place(){
   const tip = Number((document.getElementById("tip")||{}).value)||0;
   if (!name || phone.length<7) return alert("Name and phone.");
   if (mode==="delivery" && addr.length<6) return alert("Need a street.");
-  const ticket = { id:"GW-"+Math.floor(1000+Math.random()*9000), at:new Date().toLocaleTimeString(), ts:Date.now(), status:"new", shop:shop.name, slug:shopSlug(), mode, eta:eta(), pay, note:document.getElementById("note").value.trim().slice(0,80), items:cart.map(i=>({n:i.name,q:i.qty,s:i.soup||""})), sub, tip, total:Math.round((sub+sub*TAX+tip)*100)/100, name, phone, addr: mode==="delivery"?addr:"PICKUP", paid:false, payLabel: pay==="card"?"CARD PENDING":"CASH COLLECT" };
+  const ticket = { id:"GW-"+Math.floor(1000+Math.random()*9000), at:new Date().toLocaleTimeString(), ts:Date.now(), status:"new", shop:shop.name, shopAddr:shop.street+", "+shop.town, slug:shopSlug(), mode, eta:eta(), pay, note:document.getElementById("note").value.trim().slice(0,80), items:cart.map(i=>({n:i.name,q:i.qty,s:i.soup||""})), sub, tip, total:Math.round((sub+sub*TAX+tip)*100)/100, name, phone, addr: mode==="delivery"?addr:"PICKUP", paid:false, payLabel: pay==="card"?"CARD PENDING":"CASH COLLECT" };
   let data;
   try { data = await saveTicket(ticket); } catch (e) { return alert(e.message); }
   if (data.checkoutUrl) { location.href = data.checkoutUrl; return; }
