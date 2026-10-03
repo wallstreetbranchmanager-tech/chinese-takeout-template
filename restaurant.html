@@ -41,7 +41,7 @@
 <div class="gate" id="gate">
   <div class="card">
     <h1>Kitchen desk</h1>
-    <p>Pin <b>2188</b>. A new order prints by itself after this. The print box still pops unless this Chrome was started with kiosk printing.</p>
+    <p>Pin <b>2188</b>. A new order prints to the receipt printer. Set that printer as the Windows default. Do not leave Microsoft Print to PDF as the default. For no dialog, start Chrome with <b>--kiosk-printing</b>. QZ Tray on this computer skips the box.</p>
     <p>Same phone or same computer. Two different phones will not see each other. There is no server.</p>
     <input id="pin" inputmode="numeric" placeholder="Pin" />
     <button class="btn" onclick="unlock()">Open the wok</button>
@@ -71,6 +71,7 @@
     <div class="col"><h2>Done</h2><div id="col-done"></div></div>
   </section>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js"></script>
 <script>
 const PIN = "2188";
 function tickets(){ return JSON.parse(localStorage.getItem("gw-tickets")||"[]"); }
@@ -120,8 +121,22 @@ function sheet(title, t){
   const pay = t.paid ? "CARD PAID" : "CASH COLLECT";
   return `${title}\n${t.shop||""}\n${t.id}  ${t.at||""}\n${(t.mode||"").toUpperCase()}  ${t.eta||""}\n\n${lines}\n\n${pay}\nTIP $${Number(t.tip||0).toFixed(2)}\n${t.name||""}\n${t.phone||""}\n${t.addr||""}\n${t.note||""}\n\nTOTAL $${Number(t.total||0).toFixed(2)}\n`;
 }
-function printTicket(t){
-  const driver = t.mode==="delivery" ? "<hr>"+sheet("DRIVER COPY", t).replace(/\n/g,"<br>") : "";
+function receipt(t){
+  const items = (t.items||[]).map(i => (i.q||1)+" "+(i.n||i.name)+(i.s?"\n  "+i.s:"")).join("\n");
+  const pay = t.paid ? "CARD PAID" : "CASH COLLECT";
+  return [t.shop||"KITCHEN", t.id+"  "+(t.at||""), (t.mode||"").toUpperCase()+"  "+(t.eta||""), "--------------------------------", items, "--------------------------------", pay, "TIP $"+Number(t.tip||0).toFixed(2), t.name||"", t.phone||"", t.addr||"", t.note||"", "TOTAL $"+Number(t.total||0).toFixed(2), "", ""].join("\n");
+}
+async function qzPrint(text){
+  try {
+    if (!window.qz) return false;
+    if (!qz.websocket.isActive()) await qz.websocket.connect();
+    await qz.print(qz.configs.create(null), [{ type:"raw", format:"plain", data: text }]);
+    return true;
+  } catch (e) { return false; }
+}
+async function printTicket(t){
+  const text = receipt(t)+(t.mode==="delivery" ? "\n\nDRIVER COPY\n"+receipt(t) : "");
+  if (await qzPrint(text)) return;
   let frame = document.getElementById("printer");
   if (!frame) {
     frame = document.createElement("iframe");
@@ -131,9 +146,9 @@ function printTicket(t){
   }
   const doc = frame.contentWindow.document;
   doc.open();
-  doc.write(`<html><head><title>${t.id}</title><style>@page{margin:8mm}body{font:14px/1.3 ui-monospace,monospace}</style></head><body><pre>${sheet("KITCHEN", t)}</pre>${driver}<script>window.onload=function(){window.print()}<\/script></body></html>`);
+  doc.write("<html><head><style>@page{size:80mm auto;margin:2mm}body{font:12px/1.25 ui-monospace,monospace;width:72mm}</style></head><body><pre>"+text.replace(/</g,"")+"</pre><script>onload=function(){print()}<\/script></body></html>");
   doc.close();
-  setTimeout(() => { try { frame.contentWindow.focus(); frame.contentWindow.print(); } catch (e) {} }, 250);
+  setTimeout(() => { try { frame.contentWindow.print(); } catch (e) {} }, 200);
 }
 function bump(id, status){
   const list = tickets();
