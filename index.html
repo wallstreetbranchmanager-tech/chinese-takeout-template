@@ -240,7 +240,7 @@ function paint(){
   document.getElementById("word").innerHTML = (bits[0]||"WOK")+"<span>"+(bits.slice(1).join(" ")||"HOUSE")+"</span>";
   document.getElementById("mark").textContent = shop.name.slice(0,1);
   document.getElementById("heroName").textContent = shop.name;
-  document.getElementById("heroSub").textContent = shop.town+" · "+shop.phone+" · free delivery at $15";
+  document.getElementById("heroSub").textContent = shop.street+", "+shop.town+" · "+shop.phone+" · free delivery at $15";
   document.getElementById("menuName").textContent = shop.name.toUpperCase();
   document.title = shop.name+" | Online Order";
 }

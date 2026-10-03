@@ -123,6 +123,8 @@ function receipt(t){
   const where = t.mode==="delivery" ? (t.addr || "NO ADDRESS") : "PICKUP";
   return [
     "ORDER "+(t.id||"NO NUMBER"),
+    t.shop||"KITCHEN",
+    t.shopAddr||"",
     who,
     where,
     t.phone||"",
