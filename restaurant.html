@@ -85,17 +85,23 @@ function togglePause(){
   localStorage.setItem("gw-paused", on?"0":"1");
   render();
 }
-function bump(id, status){
-  fetch("/api/orders", { method:"PATCH", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ id, status }) }).then(()=>pull());
-}
+const BOARD = "dqp98n0e";
+function kvGet(key){ return fetch("https://keyvalue.immanuel.co/api/KeyVal/GetValue/"+BOARD+"/"+key).then(r=>r.json()).catch(()=>""); }
+function kvPut(key, val){ return fetch("https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/"+BOARD+"/"+key+"/"+encodeURIComponent(val), { method:"POST" }); }
 let printed = new Set();
 let primed = false;
 async function pull(){
   try {
-    const res = await fetch("/api/orders");
-    const data = await res.json();
-    localStorage.setItem("gw-tickets", JSON.stringify(data.orders || []));
-    (data.orders || []).filter(t => t.status==="new" && (t.pay!=="card" || t.paid)).forEach(t => {
+    const raw = await kvGet("ids");
+    const ids = String(raw||"").split(",").filter(Boolean);
+    const orders = [];
+    for (const id of ids) {
+      const t = await kvGet("t-"+id);
+      if (!t) continue;
+      orders.push(typeof t==="string" ? JSON.parse(t) : t);
+    }
+    localStorage.setItem("gw-tickets", JSON.stringify(orders));
+    orders.filter(t => t.status==="new" && (t.pay!=="card" || t.paid)).forEach(t => {
       if (!primed) { printed.add(t.id); return; }
       if (printed.has(t.id)) return;
       printed.add(t.id);
@@ -106,8 +112,8 @@ async function pull(){
   render();
 }
 function printTicket(t){
-  const lines = (t.items||[]).map(i => `${i.qty||1}  ${i.name}  ${i.zh||""}${i.soup?"\n   "+i.soup:""}${i.rice?"\n   "+i.rice:""}${i.spice?"\n   Spice "+i.spice:""}`).join("\n");
-  const pay = t.paid ? "CARD PAID" : "CASH COLLECT";
+  const lines = (t.items||[]).map(i => `${i.q||i.qty||1}  ${i.n||i.name}  ${i.zh||""}${i.s||i.soup?"\n   "+(i.s||i.soup):""}${i.r||i.rice?"\n   "+(i.r||i.rice):""}`).join("\n");
+  const pay = t.paid || t.pay==="card" ? "CARD PAID" : "CASH COLLECT";
   const w = window.open("", "ticket", "width=420,height=700");
   if (!w) return alert("Popup blocked. Allow popups so the ticket can print.");
   w.document.write(`<pre style="font:16px/1.35 monospace">KITCHEN TICKET
@@ -129,6 +135,13 @@ TOTAL $${Number(t.total||0).toFixed(2)}
   w.focus();
   w.print();
 }
+function bump(id, status){
+  const list = tickets();
+  const hit = list.find(t=>t.id===id);
+  if (!hit) return;
+  hit.status = status;
+  kvPut("t-"+id, JSON.stringify(hit)).then(()=>pull());
+}
 function render(){
   const shop = JSON.parse(localStorage.getItem("gw-shop")||"{}");
   document.getElementById("shopName").textContent = (shop.name||"Golden Wok")+" desk";
@@ -147,7 +160,7 @@ function render(){
   document.getElementById("nMoney").textContent = "$"+today.reduce((s,t)=>s+(t.total||0),0).toFixed(0);
 }
 function card(t){
-  const lines = (t.items||[]).map(i=>`${i.qty||1} × ${i.name} ${i.zh||""}${i.soup?"<br>"+i.soup:""}${i.rice?"<br>"+i.rice:""}${i.spice?"<br>Spice "+i.spice:""}`).join("<br>");
+  const lines = (t.items||[]).map(i=>`${i.q||i.qty||1} × ${i.n||i.name} ${i.zh||""}${i.s||i.soup?"<br>"+(i.s||i.soup):""}${i.r||i.rice?"<br>"+(i.r||i.rice):""}`).join("<br>");
   const next = t.status==="new" ? "wok" : t.status==="wok" ? "ready" : t.status==="ready" ? "done" : "";
   const label = t.status==="new" ? "On the wok" : t.status==="wok" ? "Ready" : t.status==="ready" ? "Done" : "";
   return `<article class="ticket"><h3>${t.id}</h3><div class="meta">${t.at||""}<br>${(t.mode||"").toUpperCase()} · ${t.eta||""}<br>${t.name||""} · ${t.phone||""}<br>${t.addr||""}<br>${t.payLabel||t.pay||""}</div><div class="items">${lines}</div>${t.note?`<div class="note">${t.note}</div>`:""}<b>$${(t.total||0).toFixed(2)}</b><div class="row" style="margin-top:8px">${next?`<button onclick="bump('${t.id}','${next}')">${label}</button>`:""}</div></article>`;

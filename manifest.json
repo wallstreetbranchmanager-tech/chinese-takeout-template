@@ -1,10 +1,12 @@
 {
-  "name": "Golden Wok Takeout",
-  "short_name": "Golden Wok",
-  "description": "White-label Chinese takeout order template.",
+  "name": "Takeout Order",
+  "short_name": "Takeout",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#140c09",
-  "theme_color": "#9b1c1c",
-  "icons": [{ "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+  "background_color": "#111111",
+  "theme_color": "#e38b12",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
 }

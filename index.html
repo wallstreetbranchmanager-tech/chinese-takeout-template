@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#e38b12" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon-192.png" />
 <title>Golden Wok | Online Order</title>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Inter:wght@420;560;700&display=swap" rel="stylesheet" />
 <style>
@@ -70,6 +76,7 @@
         <h1 id="heroName">Golden Wok</h1>
         <p id="heroSub">Free delivery at $15</p>
         <button class="order-btn" onclick="show('menu')">Online Order</button>
+        <p><button class="order-btn" style="background:#111;margin-top:10px" onclick="installApp()">Add to phone</button></p>
       </div>
     </div>
   </section>
@@ -112,7 +119,10 @@
       <p><a href="restaurant.html">Kitchen desk</a> · pin 2188</p>
     </div>
   </section>
-  <section id="brand" class="hide">
+  <section id="track" class="hide">
+    <div class="bar"><button class="back" onclick="show('home')">←</button><b>YOUR ORDER</b></div>
+    <div class="box" id="trackBox"></div>
+  </section>
     <div class="bar"><button class="back" onclick="show('home')">←</button><b>REBRAND</b></div>
     <div class="box">
       <p>Paste the Yelp name. This is the template, not Best Kitchen.</p>
@@ -225,7 +235,7 @@ function paint(){
   document.title = shop.name+" | Online Order";
 }
 function show(id){
-  ["home","menu","detail","cart","pay","brand"].forEach(s=>document.getElementById(s).classList.toggle("hide", s!==id));
+  ["home","menu","detail","cart","pay","brand","track"].forEach(s=>document.getElementById(s).classList.toggle("hide", s!==id));
   if (id==="menu") renderList();
   if (id==="pay") document.getElementById("eta").textContent = eta();
   if (id==="brand"){ document.getElementById("fName").value=shop.name; document.getElementById("fTown").value=shop.town; document.getElementById("fStreet").value=shop.street; document.getElementById("fPhone").value=shop.phone; }
@@ -280,6 +290,23 @@ function eta(){
   return (mode==="delivery"?"Delivery ":"Pickup ")+lo+"–"+(lo+12)+" min";
 }
 function luhn(num){ const s=(num||"").replace(/\D/g,""); if(s.length<13) return false; let sum=0, alt=false; for(let i=s.length-1;i>=0;i--){ let n=+s[i]; if(alt){ n*=2; if(n>9)n-=9; } sum+=n; alt=!alt; } return sum%10===0; }
+const BOARD = "dqp98n0e";
+function kvPut(key, val){ return fetch("https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/"+BOARD+"/"+key+"/"+encodeURIComponent(val), { method:"POST" }); }
+function kvGet(key){ return fetch("https://keyvalue.immanuel.co/api/KeyVal/GetValue/"+BOARD+"/"+key).then(r=>r.json()).catch(()=>""); }
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredPrompt = e; });
+function installApp(){
+  if (deferredPrompt) { deferredPrompt.prompt(); return; }
+  alert("On iPhone: Share, Add to Home Screen. On Android: browser menu, Install app.");
+}
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+async function saveTicket(ticket){
+  await kvPut("t-"+ticket.id, JSON.stringify(ticket));
+  const raw = await kvGet("ids");
+  const ids = String(raw||"").split(",").filter(Boolean).filter(x=>x!==ticket.id);
+  ids.unshift(ticket.id);
+  await kvPut("ids", ids.slice(0, 25).join(","));
+}
 async function place(){
   const sub = cart.reduce((s,l)=>s+l.price*l.qty,0);
   if (sub<MIN) return alert("No checkout under $15.");
@@ -288,13 +315,24 @@ async function place(){
   const addr = document.getElementById("addr").value.trim();
   if (!name || phone.length<7) return alert("Name and phone.");
   if (mode==="delivery" && addr.length<6) return alert("Need a street.");
-  const ticket = { id:"GW-"+Math.floor(1000+Math.random()*9000), at:new Date().toLocaleString(), ts:Date.now(), status:"new", shop:shop.name, mode, eta:eta(), pay, note:document.getElementById("note").value.trim(), items:cart.map(i=>({...i})), sub, tax:sub*TAX, total:sub+sub*TAX, name, phone, addr: mode==="delivery"?addr:"PICKUP" };
-  const res = await fetch("/api/orders", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ ticket }) });
-  const data = await res.json();
-  if (!res.ok) return alert(data.error || "Kitchen did not get it.");
-  if (data.checkoutUrl) { location.href = data.checkoutUrl; return; }
+  const ticket = { id:"GW-"+Math.floor(1000+Math.random()*9000), at:new Date().toLocaleTimeString(), ts:Date.now(), status:"new", shop:shop.name, mode, eta:eta(), pay, note:document.getElementById("note").value.trim().slice(0,80), items:cart.map(i=>({n:i.name,q:i.qty,s:i.soup||"",r:i.rice||""})), sub, total:Math.round((sub+sub*TAX)*100)/100, name, phone, addr: mode==="delivery"?addr:"PICKUP", paid:false, payLabel: pay==="card"?"CARD PENDING":"CASH COLLECT" };
+  if (pay==="card"){
+    const res = await fetch("/api/orders", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ ticket }) });
+    const data = await res.json().catch(()=>({}));
+    if (data.checkoutUrl) { location.href = data.checkoutUrl; return; }
+    return alert(data.error || "Card processor is not connected. Cash works. I will not fake a charge.");
+  }
+  await saveTicket(ticket);
   cart = []; localStorage.setItem("gw-cart","[]");
-  document.getElementById("done").textContent = ticket.id+" is on the restaurant computer. CASH COLLECT. "+ticket.addr+". "+ticket.eta+". Allow popups over there or it will not print.";
+  watch(ticket.id);
+}
+async function watch(id){
+  show("track");
+  const raw = await kvGet("t-"+id);
+  const t = typeof raw==="string" ? JSON.parse(raw||"{}") : raw;
+  const label = { new:"Kitchen has it", wok:"On the wok", ready:"Ready", done:"Done" }[t.status] || "Sent";
+  document.getElementById("trackBox").innerHTML = `<h2>${t.id||id}</h2><p>${label}</p><p>${t.eta||""}</p><p>${t.payLabel||""}</p><p>${t.addr||""}</p><p>${(t.items||[]).map(i=>i.q+" × "+i.n).join("<br>")}</p><p><b>$${Number(t.total||0).toFixed(2)}</b></p>`;
+  if (t.status!=="done") setTimeout(()=>watch(id), 5000);
 }
 function saveBrand(){
   shop.name = document.getElementById("fName").value||DEFAULTS.name;
