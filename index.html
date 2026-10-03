@@ -3,48 +3,58 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Chinese Takeout Template</title>
+<title>Golden Wok | Online Order</title>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Inter:wght@420;560;700&display=swap" rel="stylesheet" />
 <style>
-  :root { --orange:#e38b12; --ink:#222; --line:#e6e6e6; }
+  :root { --orange:#e38b12; --ink:#222; --line:#e5e5e5; }
   * { box-sizing:border-box; }
-  body { margin:0; font-family:Inter, system-ui, sans-serif; background:#ddd; color:var(--ink); }
+  body { margin:0; font-family:Inter, system-ui, sans-serif; background:#e8e8e8; color:var(--ink); }
   button, input, select, textarea { font:inherit; }
+  a { color:inherit; }
   .phone { width:min(440px,100%); margin:0 auto; background:#fff; min-height:100vh; }
-  .top { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--line); position:sticky; top:0; background:#fff; z-index:5; }
-  .logo { width:46px; height:46px; border-radius:50%; background:#e10600; color:#fff; display:grid; place-items:center; font-weight:700; font-size:13px; }
-  .word { font-weight:700; letter-spacing:.12em; font-size:16px; }
-  .word span { display:block; letter-spacing:.22em; font-size:12px; }
+  .top { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--line); position:sticky; top:0; background:#fff; z-index:6; }
+  .logo { width:46px; height:46px; border-radius:50%; background:#e10600; color:#fff; display:grid; place-items:center; font-weight:700; }
+  .word { font-weight:700; letter-spacing:.12em; font-size:15px; }
+  .word span { display:block; letter-spacing:.2em; font-size:12px; }
   .menu-btn { margin-left:auto; border:0; background:transparent; cursor:pointer; font-weight:700; }
-  .hero { height:72vh; background:#1a120e center/cover no-repeat; display:grid; place-items:center; text-align:center; color:#fff; position:relative; }
-  .hero:after { content:""; position:absolute; inset:0; background:rgba(0,0,0,.45); }
+  .hero { height:68vh; background:#1a120e center/cover no-repeat; display:grid; place-items:center; text-align:center; color:#fff; position:relative; }
+  .hero:after { content:""; position:absolute; inset:0; background:rgba(0,0,0,.48); }
   .hero .in { position:relative; z-index:1; }
-  .hero h1 { font-family:"Libre Baskerville", serif; font-size:38px; margin:0 0 16px; }
-  .order-btn { background:var(--orange); color:#fff; border:0; border-radius:6px; padding:14px 32px; font-size:18px; font-weight:700; cursor:pointer; }
-  .bar { display:flex; align-items:center; padding:12px 14px; border-bottom:1px solid var(--line); position:sticky; top:0; background:#fff; z-index:4; }
-  .bar b { letter-spacing:.04em; }
-  .bar .cart { margin-left:auto; border:0; background:transparent; cursor:pointer; font-size:18px; }
-  .back { border:0; background:transparent; font-size:22px; cursor:pointer; }
+  .hero h1 { font-family:"Libre Baskerville", serif; font-size:36px; margin:0 0 14px; }
+  .order-btn { background:var(--orange); color:#fff; border:0; border-radius:6px; padding:14px 28px; font-size:18px; font-weight:700; cursor:pointer; }
+  .bar { position:sticky; top:0; z-index:5; display:flex; align-items:center; justify-content:center; padding:12px 48px; border-bottom:1px solid var(--line); background:#fff; text-align:center; }
+  .bar b { font-size:15px; line-height:1.25; }
+  .back, .cart { position:absolute; border:0; background:transparent; cursor:pointer; font-size:20px; }
+  .back { left:8px; }
+  .cart { right:12px; }
+  .cats { display:flex; gap:8px; overflow:auto; padding:10px 12px; background:#f7f7f7; border-bottom:1px solid var(--line); position:sticky; top:48px; z-index:4; }
+  .cats button { border:0; background:#fff; border-radius:999px; padding:8px 12px; white-space:nowrap; cursor:pointer; font-weight:650; }
+  .cats button.on { background:#111; color:#fff; }
   .cat { background:#f7f7f7; padding:14px; border-bottom:1px solid var(--line); }
-  .cat h2 { margin:0; font-size:16px; }
+  .cat h2 { margin:0; font-size:15px; letter-spacing:.04em; }
   .cat p { margin:6px 0 0; color:#777; font-size:13px; }
-  .item { display:flex; gap:10px; width:100%; text-align:left; padding:14px; border:0; border-bottom:1px solid var(--line); background:#fff; cursor:pointer; }
-  .item .name { flex:1; }
-  .zh { color:#888; display:block; }
+  .item { display:flex; gap:10px; width:100%; text-align:left; padding:13px 14px; border:0; border-bottom:1px solid var(--line); background:#fff; cursor:pointer; }
+  .item .name { flex:1; font-size:15px; }
+  .zh { color:#888; display:block; font-size:13px; }
   .price { white-space:nowrap; }
-  h3.mod { margin:16px 14px 8px; font-size:16px; }
-  .opt { display:flex; gap:10px; align-items:center; margin:0 14px 8px; border:1px solid #ddd; padding:12px; }
+  h3.mod { margin:18px 14px 8px; font-size:17px; }
+  .opt { display:grid; grid-template-columns:72px 1fr; align-items:center; border:1px solid #ddd; min-height:62px; padding:8px 16px; margin:0 0 8px; }
+  .opt input { justify-self:center; width:20px; height:20px; accent-color:#1a73e8; }
+  .opt span { text-align:right; line-height:1.25; }
+  .opt small { display:block; }
   .sticky { position:sticky; bottom:0; background:var(--orange); color:#fff; display:flex; }
-  .sticky .amt { padding:16px 18px; font-size:20px; font-weight:700; border-right:1px solid rgba(255,255,255,.35); }
+  .sticky .amt { padding:14px 16px; font-size:20px; font-weight:700; border-right:1px solid rgba(255,255,255,.35); min-width:108px; }
   .sticky button { flex:1; border:0; background:transparent; color:#fff; font-size:18px; font-weight:700; cursor:pointer; }
+  .sticky button:disabled { opacity:.55; }
   .line { padding:14px; border-bottom:1px solid var(--line); }
   .mods { color:#666; font-size:13px; }
-  .sum { padding:8px 14px 100px; }
+  .sum { padding:8px 14px 110px; }
   .sum div, .mods div { display:flex; justify-content:space-between; padding:4px 0; }
   .min { background:#f3f3f3; text-align:center; padding:10px; margin:8px 0; font-weight:700; }
   .hide { display:none; }
-  input, textarea { width:100%; border:1px solid #ddd; border-radius:6px; padding:11px; margin-top:6px; }
-  .brandbox { padding:14px; }
+  input, textarea, select { width:100%; border:1px solid #ddd; border-radius:6px; padding:11px; margin-top:6px; }
+  .box { padding:14px 14px 110px; }
+  .fire { color:#e10600; }
 </style>
 </head>
 <body>
@@ -58,6 +68,7 @@
     <div class="hero" style="background-image:url('img/spread.jpg')">
       <div class="in">
         <h1 id="heroName">Golden Wok</h1>
+        <p id="heroSub">Free delivery at $15</p>
         <button class="order-btn" onclick="show('menu')">Online Order</button>
       </div>
     </div>
@@ -68,27 +79,24 @@
       <b id="menuName">GOLDEN WOK</b>
       <button class="cart" onclick="openCart()">🛒 <span id="count">0</span></button>
     </div>
-    <div class="cat">
-      <h2>DINNER COMBINATIONS</h2>
-      <p>Choice of rice, soup or egg roll or soda. Same shape as a foodbooking board. Swap the name, not the counter.</p>
-    </div>
+    <div class="cats" id="chips"></div>
     <div id="list"></div>
   </section>
   <section id="detail" class="hide">
     <div class="bar"><button class="back" onclick="show('menu')">←</button><b id="dTitle">Item</b></div>
-    <div id="mods"></div>
+    <div id="mods" style="padding-bottom:90px"></div>
     <div class="sticky"><div class="amt" id="dPrice">$0</div><button onclick="addCurrent()">Add to cart</button></div>
   </section>
   <section id="cart" class="hide">
     <div class="bar"><button class="back" onclick="show('menu')">←</button><b>SHOPPING CART</b></div>
     <div id="cartLines"></div>
     <div class="sum" id="sum"></div>
-    <div class="sticky"><div class="amt" id="cartTotal">TOTAL<br>$0</div><button onclick="show('pay')">Go to Checkout</button></div>
+    <div class="sticky"><div class="amt" id="cartTotal">TOTAL<br>$0</div><button id="goPay" onclick="show('pay')">Go to Checkout</button></div>
   </section>
   <section id="pay" class="hide">
     <div class="bar"><button class="back" onclick="openCart()">←</button><b>CHECKOUT</b></div>
-    <div class="brandbox">
-      <input id="cname" placeholder="Name" />
+    <div class="box">
+      <input id="cname" placeholder="Name on the bag" />
       <input id="cphone" placeholder="Phone" />
       <label><input type="radio" name="mode" checked onchange="mode='delivery'"> Delivery · free at $15</label>
       <label><input type="radio" name="mode" onchange="mode='pickup'"> Pickup</label>
@@ -97,15 +105,16 @@
       <label><input type="radio" name="pay" onchange="pay='cash'"> Cash</label>
       <input id="card" placeholder="4242 4242 4242 4242" />
       <input id="exp" placeholder="MM/YY" />
+      <textarea id="note" rows="2" placeholder="No onion, extra sauce, spice"></textarea>
       <p id="eta"></p>
       <button class="order-btn" style="width:100%" onclick="place()">Pay and send</button>
       <p id="done"></p>
-      <p><a href="restaurant.html">Kitchen desk</a></p>
+      <p><a href="restaurant.html">Kitchen desk</a> · pin 2188</p>
     </div>
   </section>
   <section id="brand" class="hide">
     <div class="bar"><button class="back" onclick="show('home')">←</button><b>REBRAND</b></div>
-    <div class="brandbox">
+    <div class="box">
       <p>Paste the Yelp name. This is the template, not Best Kitchen.</p>
       <input id="fName" placeholder="Restaurant name" />
       <input id="fTown" placeholder="Town" />
@@ -117,78 +126,180 @@
 </div>
 <script>
 const TAX = 0.08625, MIN = 15;
-const SOUP = ["Wonton Soup 雲吞湯","Egg Drop Soup 蛋花湯","Hot & Sour Soup 酸辣湯","Egg Roll 春卷","Soda 汽水"];
-const RICE = ["White Rice 白饭","Brown Rice 减肥饭","Plain Fried Rice 净炒饭","Pork Fried Rice 叉烧炒饭","Chicken Fried Rice 鸡炒饭","Vegetable Fried Rice 菜炒饭"];
-const ITEMS = [
-  ["Brown Sauce Dinner Combination","宫保晚餐",10.95],
-  ["Garlic Sauce Dinner Combination","鱼香晚餐",10.95],
-  ["Bean Curd w. Mixed Vegetable","杂菜豆腐晚餐",10.95],
-  ["General Tso's Tofu Dinner","左豆腐晚餐",10.95],
-  ["Broccoli Dinner Combination","芥兰晚餐",11.25],
-  ["Mixed Vegetable Dinner","杂菜晚餐",11.25],
-  ["Lo Mein Dinner Combination","捞面晚餐",11.25],
-  ["Mei Fun Dinner Combination","米粉晚餐",11.25],
-  ["Egg Foo Young Dinner","蓉蛋晚餐",11.25],
-  ["Sweet & Sour Chicken Dinner","甜酸鸡晚餐",11.25],
-  ["Moo Goo Gai Pan Dinner","蘑菇鸡片晚餐",11.25],
-  ["Sesame Chicken Dinner","芝麻鸡晚餐",11.25],
-  ["General Tso's Chicken Dinner","左鸡晚餐",11.25],
-  ["Kung Pao Chicken Dinner","宫保鸡晚餐",11.25],
-  ["Curry Dinner Combination","咖喱晚餐",11.25],
-  ["Hunan Sauce Dinner","湖南汁晚餐",11.55],
-  ["Szechuan Sauce Dinner","四川汁晚餐",11.55]
+const SOUPS = [["Wonton Soup","雲吞湯"],["Egg Drop Soup","蛋花湯"],["Hot & Sour Soup","酸辣湯"],["Egg Roll","春卷"],["Soda","汽水"]];
+const RICES = [["White Rice","白饭"],["Brown Rice","减肥饭"],["Plain Fried Rice","净炒饭"],["Pork Fried Rice","叉烧炒饭"],["Chicken Fried Rice","鸡炒饭"],["Vegetable Fried Rice","菜炒饭"]];
+const MENU = [
+  { id:"apps", title:"APPETIZERS", blurb:"The front of a Long Island takeout menu.", items:[
+    ["Pork Egg Roll","春卷",2.50],["Vegetable Spring Roll","菜春卷",2.75],["Fried Dumplings (8)","锅贴",8.95],
+    ["Steamed Dumplings (8)","蒸饺",8.95],["Fried Wonton (8)","炸云吞",7.50],["Crab Rangoon (6)","蟹角",7.95],
+    ["Boneless Spare Ribs","无骨排骨",11.95],["BBQ Spare Ribs","排骨",12.50],["Chicken Wings (6)","鸡翅",9.95],
+    ["Chicken Fingers","鸡柳",8.95],["Fried Shrimp (6)","炸虾",9.50],["Pu Pu Platter","宝宝盘",16.95]
+  ]},
+  { id:"soup", title:"SOUP", blurb:"Pint. Quart is on the item.", items:[
+    ["Wonton Soup","雲吞湯",4.25],["Egg Drop Soup","蛋花湯",3.75],["Hot & Sour Soup","酸辣湯",4.50],
+    ["Chicken Rice Soup","鸡饭汤",3.95],["Wonton Soup Quart","雲吞湯大",7.50],["Hot & Sour Quart","酸辣湯大",7.95]
+  ]},
+  { id:"lunch", title:"LUNCH SPECIALS", blurb:"11 to 3. Served with pork fried rice and soup or egg roll. Not a dinner.", items:[
+    ["Chicken with Broccoli Lunch","芥兰鸡午餐",10.50],["General Tso's Chicken Lunch","左宗鸡午餐",11.25],
+    ["Sesame Chicken Lunch","芝麻鸡午餐",11.25],["Beef with Broccoli Lunch","芥兰牛午餐",11.50],
+    ["Shrimp with Broccoli Lunch","芥兰虾午餐",11.95],["Pork Lo Mein Lunch","捞面午餐",10.95],
+    ["Sweet & Sour Chicken Lunch","甜酸鸡午餐",10.95],["Vegetable Delight Lunch","杂菜午餐",10.50]
+  ]},
+  { id:"dinner", title:"DINNER COMBINATIONS", blurb:"Choice of rice, and soup or egg roll or soda. The $11–$13 board.", combo:true, items:[
+    ["Brown Sauce Dinner Combination","宫保晚餐",10.95],["Garlic Sauce Dinner Combination","鱼香晚餐",10.95],
+    ["Bean Curd w. Mixed Vegetable Dinner","杂菜豆腐晚餐",10.95],["General Tso's Tofu Dinner","左豆腐晚餐",10.95],
+    ["Broccoli Dinner Combination","芥兰晚餐",11.25],["Mixed Vegetable Dinner Combination","杂菜晚餐",11.25],
+    ["Lo Mein Dinner Combination","捞面晚餐",11.25],["Mei Fun Dinner Combination","米粉晚餐",11.25],
+    ["Egg Foo Young Dinner Combination","蓉蛋晚餐",11.25],["Sweet & Sour Chicken Dinner","甜酸鸡晚餐",11.25],
+    ["Moo Goo Gai Pan Dinner","蘑菇鸡片晚餐",11.25],["Sesame Chicken Dinner","芝麻鸡晚餐",11.25],
+    ["General Tso's Chicken Dinner","左鸡晚餐",11.25],["Kung Pao Chicken Dinner","宫保鸡晚餐",11.25],
+    ["Curry Dinner Combination","咖喱晚餐",11.25],["Hunan Sauce Dinner","湖南汁晚餐",11.55,1],
+    ["Szechuan Sauce Dinner","四川汁晚餐",11.55,1],["Shrimp Dinner Combination","虾晚餐",12.95],
+    ["Beef Dinner Combination","牛晚餐",12.95],["Happy Family Dinner","全家福晚餐",13.95]
+  ]},
+  { id:"rice", title:"FRIED RICE", blurb:"Pint. The quart is the next line.", items:[
+    ["Pork Fried Rice","叉烧炒饭",11.95],["Chicken Fried Rice","鸡炒饭",11.95],["Shrimp Fried Rice","虾炒饭",13.50],
+    ["Beef Fried Rice","牛炒饭",12.95],["Vegetable Fried Rice","菜炒饭",10.95],["House Fried Rice","本楼炒饭",13.95],
+    ["Young Chow Fried Rice","扬州炒饭",13.95],["Plain Fried Rice","净炒饭",8.95],["Pork Fried Rice Quart","叉烧炒饭大",15.95]
+  ]},
+  { id:"mein", title:"LO MEIN", blurb:"Soft noodle. Not the crispy one.", items:[
+    ["Pork Lo Mein","叉烧捞面",12.95],["Chicken Lo Mein","鸡捞面",12.95],["Shrimp Lo Mein","虾捞面",14.50],
+    ["Beef Lo Mein","牛捞面",13.95],["Vegetable Lo Mein","菜捞面",11.95],["House Lo Mein","本楼捞面",14.95],
+    ["Roast Pork Lo Mein Quart","叉烧捞面大",16.95]
+  ]},
+  { id:"chow", title:"CHOW MEIN / MEI FUN / CHOW FUN", blurb:"Crispy noodle, rice noodle, wide noodle.", items:[
+    ["Chicken Chow Mein","鸡炒面",13.50],["Shrimp Chow Mein","虾炒面",14.95],["House Chow Mein","本楼炒面",15.50],
+    ["Chicken Mei Fun","鸡米粉",13.50],["Singapore Mei Fun","星洲米粉",14.95,1],["Roast Pork Mei Fun","叉烧米粉",13.50],
+    ["Beef Chow Fun","干炒牛河",14.95],["Chicken Chow Fun","鸡河粉",13.95],["Shrimp Chow Fun","虾河粉",15.50]
+  ]},
+  { id:"foo", title:"EGG FOO YOUNG", blurb:"Gravy on the side unless they say otherwise.", items:[
+    ["Roast Pork Egg Foo Young","叉烧蓉蛋",13.50],["Chicken Egg Foo Young","鸡蓉蛋",13.50],
+    ["Shrimp Egg Foo Young","虾蓉蛋",14.95],["Vegetable Egg Foo Young","菜蓉蛋",12.95]
+  ]},
+  { id:"poultry", title:"POULTRY", blurb:"White meat unless the name says otherwise. Served with white rice.", items:[
+    ["General Tso's Chicken","左宗鸡",15.95],["Sesame Chicken","芝麻鸡",15.95],["Orange Chicken","陈皮鸡",15.95],
+    ["Kung Pao Chicken","宫保鸡",15.95,1],["Chicken with Broccoli","芥兰鸡",14.95],["Moo Goo Gai Pan","蘑菇鸡片",14.95],
+    ["Sweet & Sour Chicken","甜酸鸡",14.95],["Lemon Chicken","柠檬鸡",15.50],["Garlic Chicken","鱼香鸡",15.50,1],
+    ["Hunan Chicken","湖南鸡",15.95,1],["Szechuan Chicken","四川鸡",15.95,1],["Curry Chicken","咖喱鸡",15.50,1],
+    ["Chicken with Mixed Vegetables","杂菜鸡",14.95],["Chicken with Garlic Sauce","鱼香汁鸡",15.50,1]
+  ]},
+  { id:"beef", title:"BEEF", blurb:"Flank, not a steakhouse.", items:[
+    ["Beef with Broccoli","芥兰牛",16.50],["Pepper Steak","青椒牛",16.50],["Beef with Garlic Sauce","鱼香牛",16.95,1],
+    ["Mongolian Beef","蒙古牛",17.50],["Orange Beef","陈皮牛",17.50],["Beef with Mixed Vegetables","杂菜牛",16.50],
+    ["Hunan Beef","湖南牛",16.95,1],["Szechuan Beef","四川牛",16.95,1]
+  ]},
+  { id:"pork", title:"PORK", blurb:"Roast pork unless it says spare rib.", items:[
+    ["Roast Pork with Broccoli","芥兰叉烧",15.50],["Roast Pork with Garlic Sauce","鱼香叉烧",15.95,1],
+    ["Roast Pork with Mixed Vegetables","杂菜叉烧",15.50],["Sweet & Sour Pork","甜酸肉",15.50],
+    ["Twice Cooked Pork","回锅肉",16.50,1],["BBQ Spare Ribs Dinner","排骨晚餐",17.95]
+  ]},
+  { id:"sea", title:"SEAFOOD", blurb:"Shrimp is the default. Lobster sauce is not lobster.", items:[
+    ["Shrimp with Broccoli","芥兰虾",17.25],["Shrimp with Lobster Sauce","虾龙糊",17.95],
+    ["Shrimp with Garlic Sauce","鱼香虾",17.95,1],["Kung Pao Shrimp","宫保虾",17.95,1],
+    ["Shrimp with Mixed Vegetables","杂菜虾",17.25],["Happy Family","全家福",19.95],
+    ["Seafood Delight","海鲜大会",20.95],["General Tso's Shrimp","左宗虾",18.50]
+  ]},
+  { id:"veg", title:"VEGETABLE & TOFU", blurb:"For the one person in the car who doesn't eat meat.", items:[
+    ["Mixed Vegetables","杂菜",12.95],["Broccoli in Garlic Sauce","鱼香芥兰",12.95,1],
+    ["Bean Curd with Mixed Vegetables","杂菜豆腐",13.50],["Ma Po Tofu","麻婆豆腐",13.95,1],
+    ["General Tso's Tofu","左宗豆腐",13.95],["Buddha's Delight","罗汉斋",13.50],
+    ["Eggplant in Garlic Sauce","鱼香茄子",13.95,1]
+  ]},
+  { id:"side", title:"SIDES", blurb:"White rice, soda, extra sauce.", items:[
+    ["White Rice","白饭",2.25],["Brown Rice","减肥饭",2.75],["Extra Duck Sauce","酸甜酱",0.75],
+    ["Extra Hot Sauce","辣酱",0.75],["Can of Soda","汽水",1.75],["Fortune Cookies (4)","签语饼",1.00]
+  ]}
 ];
-const DEFAULTS = { name:"Golden Wok", town:"Anytown", street:"100 Main Street", phone:"(555) 014-0188" };
+const DEFAULTS = { name:"Golden Wok", town:"West Islip", street:"100 Main Street", phone:"(555) 014-0188" };
 let shop = Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem("gw-shop")||"{}"));
-let cart = [], current = null, mode = "delivery", pay = "card";
-function money(n){ return "$"+n.toFixed(2); }
+let cart = JSON.parse(localStorage.getItem("gw-cart")||"[]");
+let current = null, mode = "delivery", pay = "card";
+function money(n){ return "$"+Number(n).toFixed(2); }
 function paint(){
   const bits = shop.name.toUpperCase().split(" ");
   document.getElementById("word").innerHTML = (bits[0]||"WOK")+"<span>"+(bits.slice(1).join(" ")||"HOUSE")+"</span>";
   document.getElementById("mark").textContent = shop.name.slice(0,1);
   document.getElementById("heroName").textContent = shop.name;
+  document.getElementById("heroSub").textContent = shop.town+" · "+shop.phone+" · free delivery at $15";
   document.getElementById("menuName").textContent = shop.name.toUpperCase();
   document.title = shop.name+" | Online Order";
 }
-function show(id){ ["home","menu","detail","cart","pay","brand"].forEach(s=>document.getElementById(s).classList.toggle("hide", s!==id)); if(id==="menu") renderList(); if(id==="pay") document.getElementById("eta").textContent = eta(); if(id==="brand"){ document.getElementById("fName").value=shop.name; document.getElementById("fTown").value=shop.town; document.getElementById("fStreet").value=shop.street; document.getElementById("fPhone").value=shop.phone; } }
+function show(id){
+  ["home","menu","detail","cart","pay","brand"].forEach(s=>document.getElementById(s).classList.toggle("hide", s!==id));
+  if (id==="menu") renderList();
+  if (id==="pay") document.getElementById("eta").textContent = eta();
+  if (id==="brand"){ document.getElementById("fName").value=shop.name; document.getElementById("fTown").value=shop.town; document.getElementById("fStreet").value=shop.street; document.getElementById("fPhone").value=shop.phone; }
+}
+function findItem(id){
+  for (const c of MENU) for (const it of c.items) if (c.id+"-"+it[0]===id) return { cat:c, it };
+}
 function renderList(){
-  document.getElementById("list").innerHTML = ITEMS.map((it,i)=>`<button class="item" onclick="openItem(${i})"><div class="name">${it[0]}<span class="zh">${it[1]}</span></div><div class="price">${it[2].toFixed(2)}</div></button>`).join("");
+  document.getElementById("chips").innerHTML = MENU.map((c,i)=>`<button class="${i===0?"on":""}" onclick="go('${c.id}',this)">${c.title.split(" ")[0]}</button>`).join("");
+  document.getElementById("list").innerHTML = MENU.map(c=>`<div class="cat" id="${c.id}"><h2>${c.title}</h2><p>${c.blurb}</p></div>`+c.items.map(it=>`<button class="item" onclick="openItem('${c.id}','${it[0].replace(/'/g,"")}')"><div class="name">${it[0]}${it[3]?" <span class='fire'>🔥</span>":""}<span class="zh">${it[1]}</span></div><div class="price">${it[2].toFixed(2)}</div></button>`).join("")).join("");
   document.getElementById("count").textContent = cart.reduce((s,i)=>s+i.qty,0);
 }
+function go(id, btn){ document.querySelectorAll(".cats button").forEach(b=>b.classList.remove("on")); btn.classList.add("on"); document.getElementById(id).scrollIntoView({behavior:"smooth", block:"start"}); }
 function optionRow(group, label, zh, checked){
   return `<label class="opt"><input type="radio" name="${group}" ${checked?"checked":""} onchange="current.${group}='${label} ${zh}'"><span>${label}<small>${zh}</small></span></label>`;
 }
-function openItem(i){
-  current = { i, soup:SOUP[0], rice:RICE[0] };
-  const it = ITEMS[i];
+function openItem(catId, name){
+  const cat = MENU.find(c=>c.id===catId);
+  const it = cat.items.find(x=>x[0]===name);
+  current = { cat:cat.title, combo:!!cat.combo, name:it[0], zh:it[1], price:it[2], spicy:!!it[3], soup:SOUPS[3].join(" "), rice:RICES[0].join(" "), spice:"Mild" };
   document.getElementById("dTitle").textContent = (it[0]+" "+it[1]).toUpperCase();
   document.getElementById("dPrice").textContent = money(it[2]);
-  const soups = [["Wonton Soup","雲吞湯"],["Egg Drop Soup","蛋花湯"],["Hot & Sour Soup","酸辣湯"],["Egg Roll","春卷"],["Soda","汽水"]];
-  const rices = [["White Rice","白饭"],["Brown Rice","减肥饭"],["Plain Fried Rice","净炒饭"],["Pork Fried Rice","叉烧炒饭"],["Chicken Fried Rice","鸡炒饭"],["Vegetable Fried Rice","菜炒饭"]];
-  document.getElementById("mods").innerHTML = `<h3 class="mod">Soup, Egg Roll or Soda Choice (Required)</h3>`+soups.map((s,n)=>optionRow("soup", s[0], s[1], n===3)).join("")+`<h3 class="mod">Rice Choice (Required)</h3>`+rices.map((s,n)=>optionRow("rice", s[0], s[1], n===0)).join("");
+  let html = "";
+  if (cat.combo){
+    html += `<h3 class="mod">Soup, Egg Roll or Soda Choice (Required)</h3>`+SOUPS.map((s,n)=>optionRow("soup", s[0], s[1], n===3)).join("");
+    html += `<h3 class="mod">Rice Choice (Required)</h3>`+RICES.map((s,n)=>optionRow("rice", s[0], s[1], n===0)).join("");
+  } else if (cat.id==="poultry" || cat.id==="beef" || cat.id==="pork" || cat.id==="sea"){
+    html += `<h3 class="mod">Spice</h3>`+["Mild","Medium","Hot"].map((s,n)=>`<label class="opt"><input type="radio" name="spice" ${n===0?"checked":""} onchange="current.spice='${s}'"><span>${s}</span></label>`).join("");
+    html += `<p style="padding:0 14px;color:#777">White rice included. Extra sauce goes in the note.</p>`;
+  }
+  document.getElementById("mods").innerHTML = html;
   show("detail");
 }
-function addCurrent(){ const it = ITEMS[current.i]; cart.push({ name:it[0], zh:it[1], price:it[2], soup:current.soup, rice:current.rice, qty:1 }); openCart(); }
+function addCurrent(){
+  cart.push({ name:current.name, zh:current.zh, price:current.price, qty:1, soup:current.combo?current.soup:"", rice:current.combo?current.rice:"", spice:current.combo?"":current.spice, cat:current.cat });
+  localStorage.setItem("gw-cart", JSON.stringify(cart));
+  openCart();
+}
 function openCart(){
-  document.getElementById("cartLines").innerHTML = cart.map((l,idx)=>`<div class="line"><b>1x ${l.name} ${l.zh}</b> ${l.price.toFixed(2)} <button onclick="cart.splice(${idx},1);openCart()">×</button><div class="mods"><div><span>${l.soup}</span></div><div><span>${l.rice}</span></div></div></div>`).join("")||"<p style='padding:14px'>Cart is empty.</p>";
-  const sub = cart.reduce((s,l)=>s+l.price,0), tax = sub*TAX;
-  document.getElementById("sum").innerHTML = `<div class="min">Minimum Order (Delivery) $15.00</div><div><span>Sub-Total</span><span>${money(sub)}</span></div><div><span>Sales tax (8.625%)</span><span>${money(tax)}</span></div><div><b>Total</b><b>${money(sub+tax)}</b></div>`;
+  document.getElementById("cartLines").innerHTML = cart.map((l,idx)=>`<div class="line"><b>${l.qty}x ${l.name} ${l.zh}</b> ${l.price.toFixed(2)} <button onclick="cart.splice(${idx},1);localStorage.setItem('gw-cart',JSON.stringify(cart));openCart()">×</button><div class="mods">${l.soup?`<div><span>${l.soup}</span></div>`:""}${l.rice?`<div><span>${l.rice}</span></div>`:""}${l.spice?`<div><span>Spice: ${l.spice}</span></div>`:""}</div></div>`).join("") || "<p style='padding:14px'>Cart is empty.</p>";
+  const sub = cart.reduce((s,l)=>s+l.price*l.qty,0), tax = sub*TAX;
+  document.getElementById("sum").innerHTML = `<div class="min">Minimum order $15.00 · delivery free at $15</div><div><span>Sub-Total</span><span>${money(sub)}</span></div><div><span>Sales tax (8.625%)</span><span>${money(tax)}</span></div><div><span>Delivery</span><span>${mode==="delivery"?"Free":"—"}</span></div><div><b>Total</b><b>${money(sub+tax)}</b></div>`;
   document.getElementById("cartTotal").innerHTML = "TOTAL<br>"+money(sub+tax);
+  document.getElementById("goPay").disabled = sub < MIN;
+  document.getElementById("goPay").textContent = sub < MIN ? "Need $15" : "Go to Checkout";
   show("cart");
 }
-function eta(){ const rush=(new Date().getHours()>=17&&new Date().getHours()<=20)?10:0; const lo=(mode==="delivery"?30:18)+rush; return (mode==="delivery"?"Delivery ":"Pickup ")+lo+"–"+(lo+12)+" min"; }
-function luhn(num){ const s=(num||"").replace(/\D/g,""); if(s.length<13)return false; let sum=0,alt=false; for(let i=s.length-1;i>=0;i--){ let n=+s[i]; if(alt){n*=2;if(n>9)n-=9;} sum+=n; alt=!alt;} return sum%10===0; }
+function eta(){
+  const qty = cart.reduce((s,i)=>s+i.qty,0);
+  const rush = (new Date().getHours()>=17 && new Date().getHours()<=20) ? 12 : 0;
+  const lo = (mode==="delivery"?32:18)+rush+Math.max(0, qty-4)*2;
+  return (mode==="delivery"?"Delivery ":"Pickup ")+lo+"–"+(lo+12)+" min";
+}
+function luhn(num){ const s=(num||"").replace(/\D/g,""); if(s.length<13) return false; let sum=0, alt=false; for(let i=s.length-1;i>=0;i--){ let n=+s[i]; if(alt){ n*=2; if(n>9)n-=9; } sum+=n; alt=!alt; } return sum%10===0; }
 function place(){
-  const sub = cart.reduce((s,l)=>s+l.price,0);
+  const sub = cart.reduce((s,l)=>s+l.price*l.qty,0);
   if (sub<MIN) return alert("No checkout under $15.");
-  if (!document.getElementById("cname").value || document.getElementById("cphone").value.length<7) return alert("Name and phone.");
-  if (mode==="delivery" && document.getElementById("addr").value.length<6) return alert("Need a street.");
-  if (pay==="card" && !luhn(document.getElementById("card").value)) return alert("Card failed.");
-  const ticket = { id:"GW-"+Math.floor(1000+Math.random()*9000), at:new Date().toLocaleString(), status:"new", shop:shop.name, mode, eta:eta(), pay, items:cart.map(i=>({...i})), total:sub+sub*TAX, name:document.getElementById("cname").value, phone:document.getElementById("cphone").value, addr:document.getElementById("addr").value };
-  const board = JSON.parse(localStorage.getItem("gw-tickets")||"[]"); board.unshift(ticket); localStorage.setItem("gw-tickets", JSON.stringify(board.slice(0,40)));
-  try { new BroadcastChannel("gw-desk").postMessage({type:"ticket"}); } catch(e){}
-  document.getElementById("done").textContent = ticket.id+" sent. "+ticket.eta+". Demo card, last four only. Kitchen desk is the other tab.";
-  cart = [];
+  const name = document.getElementById("cname").value.trim();
+  const phone = document.getElementById("cphone").value.trim();
+  const addr = document.getElementById("addr").value.trim();
+  if (!name || phone.length<7) return alert("Name and phone.");
+  if (mode==="delivery" && addr.length<6) return alert("Need a street.");
+  let payLabel = "Cash · collect in person";
+  if (pay==="card"){
+    if (!luhn(document.getElementById("card").value)) return alert("Card failed. Nothing sent.");
+    payLabel = "Card •"+document.getElementById("card").value.replace(/\D/g,"").slice(-4);
+  }
+  const ticket = { id:"GW-"+Math.floor(1000+Math.random()*9000), at:new Date().toLocaleString(), ts:Date.now(), status:"new", shop:shop.name, mode, eta:eta(), pay, payLabel, note:document.getElementById("note").value.trim(), items:cart.map(i=>({...i})), sub, tax:sub*TAX, total:sub+sub*TAX, name, phone, addr };
+  const board = JSON.parse(localStorage.getItem("gw-tickets")||"[]");
+  board.unshift(ticket);
+  localStorage.setItem("gw-tickets", JSON.stringify(board.slice(0,40)));
+  try { new BroadcastChannel("gw-desk").postMessage({type:"ticket", id:ticket.id}); } catch(e){}
+  cart = []; localStorage.setItem("gw-cart","[]");
+  document.getElementById("done").textContent = ticket.id+" sent to the kitchen desk. "+ticket.eta+". "+payLabel+". Open restaurant.html on this same phone or computer. Pin 2188. Two different phones will not see it. This is not a live bank charge.";
 }
 function saveBrand(){
   shop.name = document.getElementById("fName").value||DEFAULTS.name;

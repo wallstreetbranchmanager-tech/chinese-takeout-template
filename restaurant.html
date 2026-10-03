@@ -3,79 +3,64 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Restaurant desk · Golden Wok</title>
-<link rel="icon" href="icon.svg" />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,620&family=Outfit:wght@400;560;700&display=swap" rel="stylesheet" />
+<title>Kitchen desk</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@420;640;740&display=swap" rel="stylesheet" />
 <style>
-  :root { --ink:#14110f; --paper:#efe7dc; --card:#fffaf4; --line:#e4d5c4; --red:#9b1c1c; --gold:#c6a15b; --ok:#1f7a45; }
-  * { box-sizing:border-box; }
-  body { margin:0; font-family:Outfit, system-ui, sans-serif; background:#1a1411; color:#f6efe6; }
-  a { color:inherit; }
+  body { margin:0; font-family:Inter, system-ui, sans-serif; background:#111; color:#f4f1ee; }
   button, input { font:inherit; }
-  header { display:flex; gap:14px; align-items:center; padding:14px 18px; border-bottom:1px solid rgba(255,255,255,.08); position:sticky; top:0; background:#1a1411; z-index:5; }
-  header b { font-family:Fraunces, serif; font-size:22px; }
-  header span { color:#cbbbaa; font-size:13px; }
-  .spacer { margin-left:auto; display:flex; gap:8px; align-items:center; }
-  .btn { border:0; border-radius:999px; padding:9px 12px; cursor:pointer; font-weight:700; text-decoration:none; }
-  .btn.light { background:#f3d7a1; color:#1a100c; }
-  .btn.ghost { background:transparent; color:#f6efe6; border:1px solid rgba(255,255,255,.2); }
-  .btn.hot { background:var(--red); color:#fff; }
-  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:14px 18px; }
-  .stat { background:#241c18; border-radius:16px; padding:12px 14px; }
-  .stat b { display:block; font-family:Fraunces, serif; font-size:26px; }
-  .stat span { color:#cbbbaa; font-size:12px; }
-  .board { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:0 18px 28px; }
-  .col { background:#241c18; border-radius:18px; padding:10px; min-height:320px; }
-  .col h2 { margin:4px 6px 10px; font-size:14px; letter-spacing:.08em; text-transform:uppercase; color:#cbbbaa; }
-  .ticket { background:#fffaf4; color:#1a100c; border-radius:16px; padding:12px; margin-bottom:10px; }
-  .ticket header { position:static; background:transparent; border:0; padding:0 0 8px; display:flex; }
-  .ticket h3 { margin:0; font-size:18px; font-family:Fraunces, serif; }
-  .meta { color:#6f6258; font-size:13px; }
+  a { color:#f4d7a1; }
+  header { display:flex; gap:12px; align-items:center; padding:14px 16px; border-bottom:1px solid #2a2a2a; position:sticky; top:0; background:#111; }
+  header b { font-size:20px; }
+  header span { color:#aaa; font-size:13px; }
+  .spacer { margin-left:auto; display:flex; gap:8px; }
+  .btn { border:0; border-radius:999px; padding:9px 12px; cursor:pointer; font-weight:700; text-decoration:none; background:#e38b12; color:#111; }
+  .btn.ghost { background:transparent; color:#fff; border:1px solid #444; }
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:12px 16px; }
+  .stat { background:#1c1c1c; border-radius:12px; padding:12px; }
+  .stat b { display:block; font-size:24px; }
+  .stat span { color:#aaa; font-size:12px; }
+  .board { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:0 16px 28px; }
+  .col { background:#1c1c1c; border-radius:14px; padding:10px; min-height:280px; }
+  .col h2 { margin:4px 6px 10px; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#aaa; }
+  .ticket { background:#fff; color:#161616; border-radius:12px; padding:12px; margin-bottom:8px; }
+  .ticket h3 { margin:0; font-size:18px; }
+  .meta { color:#666; font-size:13px; }
   .items { margin:8px 0; font-size:14px; }
-  .note { background:#fff3df; border-radius:10px; padding:8px; font-size:13px; margin-bottom:8px; }
+  .note { background:#fff4e5; border-radius:8px; padding:8px; font-size:13px; }
   .row { display:flex; gap:6px; flex-wrap:wrap; }
-  .row button { border:0; border-radius:999px; padding:8px 10px; cursor:pointer; font-weight:700; background:#1a100c; color:#fff; }
-  .row button.alt { background:#efe7dc; color:#1a100c; }
+  .row button { border:0; border-radius:999px; padding:8px 10px; cursor:pointer; font-weight:700; background:#111; color:#fff; }
   .gate { min-height:100vh; display:grid; place-items:center; padding:24px; }
-  .card { width:min(420px,100%); background:#fffaf4; color:#1a100c; border-radius:22px; padding:22px; }
-  .card h1 { font-family:Fraunces, serif; margin:0 0 8px; }
-  .card input { width:100%; padding:12px; border-radius:12px; border:1px solid #e4d5c4; margin:8px 0 12px; }
-  .menu-edit { padding:0 18px 40px; }
-  .menu-edit h2 { font-family:Fraunces, serif; }
-  .items-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:8px; }
-  .chip { background:#241c18; border-radius:14px; padding:10px 12px; display:flex; justify-content:space-between; gap:8px; align-items:center; }
-  .chip.off { opacity:.45; }
-  .empty { color:#cbbbaa; font-size:13px; padding:8px; }
-  @media (max-width:980px) { .stats, .board { grid-template-columns:1fr 1fr; } }
-  @media (max-width:640px) { .stats, .board { grid-template-columns:1fr; } header { flex-wrap:wrap; } }
+  .card { width:min(420px,100%); background:#fff; color:#161616; border-radius:16px; padding:22px; }
+  .card input { width:100%; padding:12px; border-radius:8px; border:1px solid #ddd; margin:8px 0 12px; }
+  .empty { color:#888; font-size:13px; padding:8px; }
+  @media (max-width:900px) { .stats, .board { grid-template-columns:1fr 1fr; } }
+  @media (max-width:640px) { .stats, .board { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
 <div class="gate" id="gate">
   <div class="card">
-    <h1>Restaurant desk</h1>
-    <p>Cook side. Customer side is the other tab. Demo pin is <b>2188</b>. Not a lock. A door so you don’t flash tickets at the diner.</p>
+    <h1>Kitchen desk</h1>
+    <p>This is the restaurant side. Orders from the customer page land here. Demo pin is <b>2188</b>.</p>
+    <p>Same phone or same computer. Two different phones will not see each other. There is no server.</p>
     <input id="pin" inputmode="numeric" placeholder="Pin" />
-    <button class="btn hot" onclick="unlock()">Open the wok</button>
-    <p><a href="index.html">Back to the customer order page</a></p>
+    <button class="btn" onclick="unlock()">Open the wok</button>
+    <p><a href="index.html">Customer side</a></p>
   </div>
 </div>
 <div id="app" style="display:none">
   <header>
-    <div>
-      <b id="shopName">Golden Wok</b><br>
-      <span id="shopMeta">Kitchen desk · tickets from the order page</span>
-    </div>
+    <div><b id="shopName">Kitchen</b><br><span id="shopMeta">Waiting on tickets</span></div>
     <div class="spacer">
-      <button class="btn ghost" id="pauseBtn" onclick="togglePause()">Online orders on</button>
-      <a class="btn light" href="index.html" target="_blank">Customer side</a>
+      <button class="btn ghost" id="pauseBtn" onclick="togglePause()">Orders on</button>
+      <a class="btn" href="index.html">Customer side</a>
     </div>
   </header>
   <section class="stats">
     <div class="stat"><b id="nNew">0</b><span>New</span></div>
     <div class="stat"><b id="nWok">0</b><span>On the wok</span></div>
-    <div class="stat"><b id="nReady">0</b><span>Ready / out</span></div>
-    <div class="stat"><b id="nMoney">$0</b><span>Today’s tickets</span></div>
+    <div class="stat"><b id="nReady">0</b><span>Ready</span></div>
+    <div class="stat"><b id="nMoney">$0</b><span>Today</span></div>
   </section>
   <section class="board">
     <div class="col"><h2>New</h2><div id="col-new"></div></div>
@@ -83,114 +68,57 @@
     <div class="col"><h2>Ready</h2><div id="col-ready"></div></div>
     <div class="col"><h2>Done</h2><div id="col-done"></div></div>
   </section>
-  <section class="menu-edit">
-    <h2>86 board</h2>
-    <p style="color:#cbbbaa">Kill an item. It drops off the customer menu on the other tab.</p>
-    <div class="items-grid" id="eighty"></div>
-  </section>
 </div>
 <script>
 const PIN = "2188";
-const ITEMS = [
-  ["l1","Chicken with Broccoli"],["l2","General Tso’s Lunch"],["l3","Beef with Broccoli lunch"],["l4","Shrimp lobster sauce"],
-  ["roll","Pork egg roll"],["vroll","Veg egg roll"],["ribs","Boneless ribs"],["wings","Wings"],["dump","Dumplings"],["toast","Shrimp toast"],
-  ["wonton","Wonton soup"],["eggdrop","Egg drop"],["hot","Hot & sour"],["house","House soup"],
-  ["pfr","Pork fried rice"],["cfr","Chicken fried rice"],["clm","Chicken lo mein"],["plm","Pork lo mein"],
-  ["gt","General Tso’s"],["lemon","Lemon chicken"],["sesame","Sesame chicken"],["garlic","Garlic chicken"],
-  ["beef","Beef broccoli"],["pepper","Pepper steak"],["shrimpb","Shrimp broccoli"],["triple","Happy family"],["tofu","Ma po tofu"]
-];
-let seen = 0;
-function money(n){ return "$" + Number(n||0).toFixed(2); }
-function tickets(){ return JSON.parse(localStorage.getItem("gw-tickets") || "[]"); }
-function saveTickets(list){
-  localStorage.setItem("gw-tickets", JSON.stringify(list));
-  try { new BroadcastChannel("gw-desk").postMessage({ type:"bump" }); } catch (e) {}
-}
-function eighty(){ return JSON.parse(localStorage.getItem("gw-86") || "[]"); }
+function tickets(){ return JSON.parse(localStorage.getItem("gw-tickets")||"[]"); }
+function save(list){ localStorage.setItem("gw-tickets", JSON.stringify(list)); render(); }
 function unlock(){
-  if (document.getElementById("pin").value.trim() !== PIN){ alert("Wrong pin. Demo pin is 2188."); return; }
-  sessionStorage.setItem("gw-desk", "1");
-  show();
-}
-function show(){
+  if (document.getElementById("pin").value !== PIN) return alert("Wrong pin.");
+  sessionStorage.setItem("gw-desk-open","1");
   document.getElementById("gate").style.display = "none";
   document.getElementById("app").style.display = "block";
-  const shop = JSON.parse(localStorage.getItem("gw-shop") || "{}");
-  if (shop.name) document.getElementById("shopName").textContent = shop.name;
-  document.getElementById("shopMeta").textContent = (shop.street || "100 Main Street") + " · " + (shop.phone || "(555) 014-0188");
   render();
 }
 function togglePause(){
-  const on = localStorage.getItem("gw-paused") === "1";
-  localStorage.setItem("gw-paused", on ? "0" : "1");
-  try { new BroadcastChannel("gw-desk").postMessage({ type:"pause" }); } catch (e) {}
+  const on = localStorage.getItem("gw-paused")==="1";
+  localStorage.setItem("gw-paused", on?"0":"1");
   render();
 }
 function bump(id, status){
-  const list = tickets().map(t => t.id === id ? Object.assign({}, t, { status }) : t);
-  saveTickets(list);
-  render();
-}
-function card(t){
-  const next = { new:["wok","Fire it"], wok:["ready","Ready"], ready:["done","Handed off"], done:["new","Reopen"] };
-  const [st, label] = next[t.status] || next.new;
-  return `<article class="ticket">
-    <h3>${t.id}</h3>
-    <div class="meta">${t.at}<br>${t.mode === "delivery" ? "Delivery · " + (t.addr||"") : "Pickup"} · ${t.eta || t.when || "ASAP"}<br>${t.name} · ${t.phone}<br>${t.payLabel || "Pay not set"}</div>
-    <div class="items">${(t.items||[]).map(i => i.qty + " × " + i.name).join("<br>")}</div>
-    ${t.note ? `<div class="note">${t.note}</div>` : ""}
-    <div class="meta">${money(t.total)} · tip ${money(t.tip||0)}</div>
-    <div class="row">
-      <button onclick="bump('${t.id}','${st}')">${label}</button>
-      ${t.status !== "done" ? `<button class="alt" onclick="bump('${t.id}','done')">Kill ticket</button>` : ""}
-    </div>
-  </article>`;
+  const list = tickets();
+  const hit = list.find(t=>t.id===id);
+  if (hit) hit.status = status;
+  save(list);
+  try { new BroadcastChannel("gw-desk").postMessage({type:"bump", id, status}); } catch(e){}
 }
 function render(){
+  const shop = JSON.parse(localStorage.getItem("gw-shop")||"{}");
+  document.getElementById("shopName").textContent = (shop.name||"Golden Wok")+" desk";
+  document.getElementById("shopMeta").textContent = (shop.street||"")+" · tickets from the order page";
+  document.getElementById("pauseBtn").textContent = localStorage.getItem("gw-paused")==="1" ? "Orders paused" : "Orders on";
   const list = tickets();
   const cols = { new:[], wok:[], ready:[], done:[] };
-  list.forEach(t => (cols[t.status] || cols.new).push(t));
-  ["new","wok","ready","done"].forEach(k => {
-    document.getElementById("col-"+k).innerHTML = cols[k].length ? cols[k].map(card).join("") : `<div class="empty">Nothing.</div>`;
+  list.forEach(t=> (cols[t.status]||cols.new).push(t));
+  ["new","wok","ready","done"].forEach(k=>{
+    document.getElementById("col-"+k).innerHTML = cols[k].length ? cols[k].map(card).join("") : "<div class='empty'>Nothing.</div>";
   });
   document.getElementById("nNew").textContent = cols.new.length;
   document.getElementById("nWok").textContent = cols.wok.length;
   document.getElementById("nReady").textContent = cols.ready.length;
-  const today = new Date().toDateString();
-  const take = list.filter(t => t.status !== "done" || true).reduce((s,t)=>s+(Number(t.total)||0),0);
-  document.getElementById("nMoney").textContent = money(list.reduce((s,t)=>s+(Number(t.total)||0),0));
-  const paused = localStorage.getItem("gw-paused") === "1";
-  const btn = document.getElementById("pauseBtn");
-  btn.textContent = paused ? "Online orders paused" : "Online orders on";
-  btn.className = paused ? "btn hot" : "btn ghost";
-  const dead = eighty();
-  document.getElementById("eighty").innerHTML = ITEMS.map(([id, name]) => {
-    const off = dead.includes(id);
-    return `<div class="chip ${off?"off":""}"><span>${name}</span><button class="btn ${off?"light":"ghost"}" onclick="toggle86('${id}')">${off?"Back on":"86"}</button></div>`;
-  }).join("");
-  if (cols.new.length > seen) beep();
-  seen = cols.new.length;
+  const today = list.filter(t=> new Date(t.ts||Date.now()).toDateString()===new Date().toDateString());
+  document.getElementById("nMoney").textContent = "$"+today.reduce((s,t)=>s+(t.total||0),0).toFixed(0);
 }
-function toggle86(id){
-  let dead = eighty();
-  dead = dead.includes(id) ? dead.filter(x => x !== id) : dead.concat(id);
-  localStorage.setItem("gw-86", JSON.stringify(dead));
-  try { new BroadcastChannel("gw-desk").postMessage({ type:"86" }); } catch (e) {}
-  render();
+function card(t){
+  const lines = (t.items||[]).map(i=>`${i.qty||1} × ${i.name} ${i.zh||""}${i.soup?"<br>"+i.soup:""}${i.rice?"<br>"+i.rice:""}${i.spice?"<br>Spice "+i.spice:""}`).join("<br>");
+  const next = t.status==="new" ? "wok" : t.status==="wok" ? "ready" : t.status==="ready" ? "done" : "";
+  const label = t.status==="new" ? "On the wok" : t.status==="wok" ? "Ready" : t.status==="ready" ? "Done" : "";
+  return `<article class="ticket"><h3>${t.id}</h3><div class="meta">${t.at||""}<br>${(t.mode||"").toUpperCase()} · ${t.eta||""}<br>${t.name||""} · ${t.phone||""}<br>${t.addr||""}<br>${t.payLabel||t.pay||""}</div><div class="items">${lines}</div>${t.note?`<div class="note">${t.note}</div>`:""}<b>$${(t.total||0).toFixed(2)}</b><div class="row" style="margin-top:8px">${next?`<button onclick="bump('${t.id}','${next}')">${label}</button>`:""}</div></article>`;
 }
-function beep(){
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.frequency.value = 880; o.connect(g); g.connect(ctx.destination); g.gain.value = 0.05;
-    o.start(); o.stop(ctx.currentTime + 0.15);
-  } catch (e) {}
-}
+try { new BroadcastChannel("gw-desk").onmessage = ()=>render(); } catch(e){}
 window.addEventListener("storage", render);
-try { new BroadcastChannel("gw-desk").onmessage = render; } catch (e) {}
-setInterval(() => { if (sessionStorage.getItem("gw-desk") === "1") render(); }, 3000);
-if (sessionStorage.getItem("gw-desk") === "1") show();
+setInterval(render, 2000);
+if (sessionStorage.getItem("gw-desk-open")==="1") { document.getElementById("gate").style.display="none"; document.getElementById("app").style.display="block"; render(); }
 </script>
 </body>
 </html>
