@@ -137,7 +137,7 @@
 <script>
 const TAX = 0.08625, MIN = 15;
 const SOUPS = [["Wonton Soup","雲吞湯"],["Egg Drop Soup","蛋花湯"],["Hot & Sour Soup","酸辣湯"],["Egg Roll","春卷"],["Soda","汽水"]];
-const RICES = [["White Rice","白饭"],["Brown Rice","减肥饭"],["Plain Fried Rice","净炒饭"],["Pork Fried Rice","叉烧炒饭"],["Chicken Fried Rice","鸡炒饭"],["Vegetable Fried Rice","菜炒饭"]];
+const RICES = [["White Rice","白饭"],["Brown Rice","减肥饭"],["Veggie Fried Rice","菜炒饭"],["Egg Fried Rice","蛋炒饭"],["Pork Fried Rice","叉烧炒饭"],["Chicken Fried Rice","鸡炒饭"]];
 const MENU = [
   { id:"apps", title:"APPETIZERS", blurb:"The front of a Long Island takeout menu.", items:[
     ["Pork Egg Roll","春卷",2.50],["Vegetable Spring Roll","菜春卷",2.75],["Fried Dumplings (8)","锅贴",8.95],
@@ -149,13 +149,13 @@ const MENU = [
     ["Wonton Soup","雲吞湯",4.25],["Egg Drop Soup","蛋花湯",3.75],["Hot & Sour Soup","酸辣湯",4.50],
     ["Chicken Rice Soup","鸡饭汤",3.95],["Wonton Soup Quart","雲吞湯大",7.50],["Hot & Sour Quart","酸辣湯大",7.95]
   ]},
-  { id:"lunch", title:"LUNCH SPECIALS", blurb:"11 to 3. Served with pork fried rice and soup or egg roll. Not a dinner.", items:[
+  { id:"lunch", title:"LUNCH SPECIALS", blurb:"11 to 3. Wonton soup and a rice choice.", items:[
     ["Chicken with Broccoli Lunch","芥兰鸡午餐",10.50],["General Tso's Chicken Lunch","左宗鸡午餐",11.25],
     ["Sesame Chicken Lunch","芝麻鸡午餐",11.25],["Beef with Broccoli Lunch","芥兰牛午餐",11.50],
     ["Shrimp with Broccoli Lunch","芥兰虾午餐",11.95],["Pork Lo Mein Lunch","捞面午餐",10.95],
     ["Sweet & Sour Chicken Lunch","甜酸鸡午餐",10.95],["Vegetable Delight Lunch","杂菜午餐",10.50]
   ]},
-  { id:"dinner", title:"DINNER COMBINATIONS", blurb:"Choice of rice, and soup or egg roll or soda. The $11–$13 board.", combo:true, items:[
+  { id:"dinner", title:"DINNER COMBINATIONS", blurb:"Wonton soup and a rice choice.", combo:true, items:[
     ["Brown Sauce Dinner Combination","宫保晚餐",10.95],["Garlic Sauce Dinner Combination","鱼香晚餐",10.95],
     ["Bean Curd w. Mixed Vegetable Dinner","杂菜豆腐晚餐",10.95],["General Tso's Tofu Dinner","左豆腐晚餐",10.95],
     ["Broccoli Dinner Combination","芥兰晚餐",11.25],["Mixed Vegetable Dinner Combination","杂菜晚餐",11.25],
@@ -275,10 +275,10 @@ function openItem(catId, index){
   document.getElementById("dPrice").textContent = money(it[2]);
   let html = "";
   if (cat.id==="dinner" || cat.id==="lunch"){
-    current.soup = "Egg Roll";
-    current.rice = cat.id==="lunch" ? "Pork Fried Rice" : "White Rice";
-    html += rows("soup", "Soup, Egg Roll or Soda (Required)", SOUPS);
-    html += rows("rice", cat.id==="lunch" ? "Rice included" : "Rice Choice (Required)", cat.id==="lunch" ? [["Pork Fried Rice","叉烧炒饭"]] : RICES);
+    current.soup = "Wonton Soup";
+    current.rice = "White Rice";
+    html += rows("soup", "Soup (Required)", [["Wonton Soup","雲吞湯"]]);
+    html += rows("rice", "Rice Choice (Required)", RICES);
   }
   if (cat.id==="apps"){
     current.sauce = "Duck sauce";
