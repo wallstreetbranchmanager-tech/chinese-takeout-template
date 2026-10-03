@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8" /><title>Paid</title></head>
+<body>
+<p id="msg">Checking the card with Stripe…</p>
+<script>
+const q = new URLSearchParams(location.search);
+fetch("/api/orders", { method:"PATCH", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ id:q.get("id"), confirmCard:true, sessionId:q.get("session_id") }) })
+  .then(r => r.json())
+  .then(d => { document.getElementById("msg").textContent = d.ok ? "Card paid. The kitchen computer is printing the ticket." : (d.error || "Not paid."); });
+</script>
+</body>
+</html>

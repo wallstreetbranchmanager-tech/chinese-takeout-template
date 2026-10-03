@@ -86,11 +86,48 @@ function togglePause(){
   render();
 }
 function bump(id, status){
-  const list = tickets();
-  const hit = list.find(t=>t.id===id);
-  if (hit) hit.status = status;
-  save(list);
-  try { new BroadcastChannel("gw-desk").postMessage({type:"bump", id, status}); } catch(e){}
+  fetch("/api/orders", { method:"PATCH", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ id, status }) }).then(()=>pull());
+}
+let printed = new Set();
+let primed = false;
+async function pull(){
+  try {
+    const res = await fetch("/api/orders");
+    const data = await res.json();
+    localStorage.setItem("gw-tickets", JSON.stringify(data.orders || []));
+    (data.orders || []).filter(t => t.status==="new" && (t.pay!=="card" || t.paid)).forEach(t => {
+      if (!primed) { printed.add(t.id); return; }
+      if (printed.has(t.id)) return;
+      printed.add(t.id);
+      printTicket(t);
+    });
+    primed = true;
+  } catch (e) {}
+  render();
+}
+function printTicket(t){
+  const lines = (t.items||[]).map(i => `${i.qty||1}  ${i.name}  ${i.zh||""}${i.soup?"\n   "+i.soup:""}${i.rice?"\n   "+i.rice:""}${i.spice?"\n   Spice "+i.spice:""}`).join("\n");
+  const pay = t.paid ? "CARD PAID" : "CASH COLLECT";
+  const w = window.open("", "ticket", "width=420,height=700");
+  if (!w) return alert("Popup blocked. Allow popups so the ticket can print.");
+  w.document.write(`<pre style="font:16px/1.35 monospace">KITCHEN TICKET
+${t.shop||""}
+${t.id}  ${t.at||""}
+${(t.mode||"").toUpperCase()}  ${t.eta||""}
+
+${lines}
+
+${pay}
+${t.name||""}
+${t.phone||""}
+${t.addr||""}
+${t.note||""}
+
+TOTAL $${Number(t.total||0).toFixed(2)}
+</pre>`);
+  w.document.close();
+  w.focus();
+  w.print();
 }
 function render(){
   const shop = JSON.parse(localStorage.getItem("gw-shop")||"{}");
@@ -115,10 +152,8 @@ function card(t){
   const label = t.status==="new" ? "On the wok" : t.status==="wok" ? "Ready" : t.status==="ready" ? "Done" : "";
   return `<article class="ticket"><h3>${t.id}</h3><div class="meta">${t.at||""}<br>${(t.mode||"").toUpperCase()} · ${t.eta||""}<br>${t.name||""} · ${t.phone||""}<br>${t.addr||""}<br>${t.payLabel||t.pay||""}</div><div class="items">${lines}</div>${t.note?`<div class="note">${t.note}</div>`:""}<b>$${(t.total||0).toFixed(2)}</b><div class="row" style="margin-top:8px">${next?`<button onclick="bump('${t.id}','${next}')">${label}</button>`:""}</div></article>`;
 }
-try { new BroadcastChannel("gw-desk").onmessage = ()=>render(); } catch(e){}
-window.addEventListener("storage", render);
-setInterval(render, 2000);
-if (sessionStorage.getItem("gw-desk-open")==="1") { document.getElementById("gate").style.display="none"; document.getElementById("app").style.display="block"; render(); }
+setInterval(pull, 4000);
+if (sessionStorage.getItem("gw-desk-open")==="1") { document.getElementById("gate").style.display="none"; document.getElementById("app").style.display="block"; pull(); }
 </script>
 </body>
 </html>

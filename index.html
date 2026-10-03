@@ -280,7 +280,7 @@ function eta(){
   return (mode==="delivery"?"Delivery ":"Pickup ")+lo+"–"+(lo+12)+" min";
 }
 function luhn(num){ const s=(num||"").replace(/\D/g,""); if(s.length<13) return false; let sum=0, alt=false; for(let i=s.length-1;i>=0;i--){ let n=+s[i]; if(alt){ n*=2; if(n>9)n-=9; } sum+=n; alt=!alt; } return sum%10===0; }
-function place(){
+async function place(){
   const sub = cart.reduce((s,l)=>s+l.price*l.qty,0);
   if (sub<MIN) return alert("No checkout under $15.");
   const name = document.getElementById("cname").value.trim();
@@ -288,18 +288,13 @@ function place(){
   const addr = document.getElementById("addr").value.trim();
   if (!name || phone.length<7) return alert("Name and phone.");
   if (mode==="delivery" && addr.length<6) return alert("Need a street.");
-  let payLabel = "Cash · collect in person";
-  if (pay==="card"){
-    if (!luhn(document.getElementById("card").value)) return alert("Card failed. Nothing sent.");
-    payLabel = "Card •"+document.getElementById("card").value.replace(/\D/g,"").slice(-4);
-  }
-  const ticket = { id:"GW-"+Math.floor(1000+Math.random()*9000), at:new Date().toLocaleString(), ts:Date.now(), status:"new", shop:shop.name, mode, eta:eta(), pay, payLabel, note:document.getElementById("note").value.trim(), items:cart.map(i=>({...i})), sub, tax:sub*TAX, total:sub+sub*TAX, name, phone, addr };
-  const board = JSON.parse(localStorage.getItem("gw-tickets")||"[]");
-  board.unshift(ticket);
-  localStorage.setItem("gw-tickets", JSON.stringify(board.slice(0,40)));
-  try { new BroadcastChannel("gw-desk").postMessage({type:"ticket", id:ticket.id}); } catch(e){}
+  const ticket = { id:"GW-"+Math.floor(1000+Math.random()*9000), at:new Date().toLocaleString(), ts:Date.now(), status:"new", shop:shop.name, mode, eta:eta(), pay, note:document.getElementById("note").value.trim(), items:cart.map(i=>({...i})), sub, tax:sub*TAX, total:sub+sub*TAX, name, phone, addr: mode==="delivery"?addr:"PICKUP" };
+  const res = await fetch("/api/orders", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ ticket }) });
+  const data = await res.json();
+  if (!res.ok) return alert(data.error || "Kitchen did not get it.");
+  if (data.checkoutUrl) { location.href = data.checkoutUrl; return; }
   cart = []; localStorage.setItem("gw-cart","[]");
-  document.getElementById("done").textContent = ticket.id+" sent to the kitchen desk. "+ticket.eta+". "+payLabel+". Open restaurant.html on this same phone or computer. Pin 2188. Two different phones will not see it. This is not a live bank charge.";
+  document.getElementById("done").textContent = ticket.id+" is on the restaurant computer. CASH COLLECT. "+ticket.addr+". "+ticket.eta+". Allow popups over there or it will not print.";
 }
 function saveBrand(){
   shop.name = document.getElementById("fName").value||DEFAULTS.name;

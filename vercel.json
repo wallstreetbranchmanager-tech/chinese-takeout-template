@@ -1,1 +1,1 @@
-{ "cleanUrls": false }
+{ "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':!data'" }
