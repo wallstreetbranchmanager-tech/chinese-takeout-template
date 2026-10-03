@@ -270,7 +270,7 @@ function openItem(catId, index){
   const cat = MENU.find(c=>c.id===catId);
   const it = cat.items[index];
   if (!it) return;
-  current = { cat:cat.id, name:it[0], zh:it[1], price:it[2], soup:"", rice:"", spice:"", size:"", sauce:"", gravy:"" };
+  current = { cat:cat.id, name:it[0], zh:it[1], price:it[2], soup:"", rice:"", spice:"", size:"", sauce:"", gravy:"", egg:"" };
   document.getElementById("dTitle").textContent = (it[0]+" "+it[1]).toUpperCase();
   document.getElementById("dPrice").textContent = money(it[2]);
   let html = "";
@@ -279,6 +279,7 @@ function openItem(catId, index){
     current.rice = "White Rice";
     html += rows("soup", "Soup, Egg Roll or Soda (Required)", SOUPS);
     html += rows("rice", "Rice Choice (Required)", RICES);
+    html += rows("egg", "Add egg to your rice", [["No egg",""],["Add egg","+$1"]]);
   }
   if (cat.id==="apps"){
     current.sauce = "Duck sauce";
@@ -295,6 +296,7 @@ function openItem(catId, index){
     current.size = /quart/i.test(it[0]) ? "Quart" : "Pint";
     if (!/quart/i.test(it[0])) html += rows("size", "Size", [["Pint",""],["Quart","+$4"]]);
     html += rows("sauce", "On the side", [["No extra sauce",""],["Duck sauce",""],["Hot sauce",""],["Gravy",""]]);
+    if (cat.id==="rice") html += rows("egg", "Add egg to your rice", [["No egg",""],["Add egg","+$1"]]);
   }
   if (cat.id==="foo"){
     current.gravy = "Gravy on the side";
@@ -306,6 +308,7 @@ function openItem(catId, index){
     current.sauce = "Sauce on the dish";
     html += rows("spice", "Spice", [["Mild",""],["Medium",""],["Hot",""]]);
     html += rows("rice", "Rice", RICES.concat([["No rice",""]]));
+    html += rows("egg", "Add egg to your rice", [["No egg",""],["Add egg","+$1"]]);
     html += rows("sauce", "Sauce", [["Sauce on the dish",""],["Sauce on the side",""],["Extra sauce",""],["Light sauce",""]]);
   }
   if (cat.id==="side" && /soda/i.test(it[0])){
@@ -318,7 +321,8 @@ function openItem(catId, index){
 function addCurrent(){
   let price = current.price;
   if (current.size==="Quart" && !/quart/i.test(current.name)) price += current.cat==="soup" ? 3.25 : 4;
-  const bits = [current.soup, current.rice, current.spice, current.size, current.sauce, current.gravy].filter(Boolean);
+  if (current.egg==="Add egg") price += 1;
+  const bits = [current.soup, current.rice, current.spice, current.size, current.sauce, current.gravy, current.egg==="Add egg"?"Add egg +$1":""].filter(Boolean);
   cart.push({ name:current.name, zh:current.zh, price, qty:1, soup:bits.join(" · "), rice:"", spice:"", cat:current.cat });
   localStorage.setItem("gw-cart", JSON.stringify(cart));
   openCart();
