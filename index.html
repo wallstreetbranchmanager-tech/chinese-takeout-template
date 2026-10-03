@@ -305,7 +305,7 @@ function openItem(catId, index){
     current.rice = "White Rice";
     current.sauce = "Sauce on the dish";
     html += rows("spice", "Spice", [["Mild",""],["Medium",""],["Hot",""]]);
-    html += rows("rice", "Rice", [["White Rice","白饭"],["Brown Rice","减肥饭"],["No rice",""]]);
+    html += rows("rice", "Rice", RICES.concat([["No rice",""]]));
     html += rows("sauce", "Sauce", [["Sauce on the dish",""],["Sauce on the side",""],["Extra sauce",""],["Light sauce",""]]);
   }
   if (cat.id==="side" && /soda/i.test(it[0])){
