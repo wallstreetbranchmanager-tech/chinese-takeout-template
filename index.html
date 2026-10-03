@@ -245,17 +245,28 @@ function findItem(id){
   for (const c of MENU) for (const it of c.items) if (c.id+"-"+it[0]===id) return { cat:c, it };
 }
 function renderList(){
-  document.getElementById("chips").innerHTML = MENU.map((c,i)=>`<button class="${i===0?"on":""}" onclick="go('${c.id}',this)">${c.title.split(" ")[0]}</button>`).join("");
-  document.getElementById("list").innerHTML = MENU.map(c=>`<div class="cat" id="${c.id}"><h2>${c.title}</h2><p>${c.blurb}</p></div>`+c.items.map(it=>`<button class="item" onclick="openItem('${c.id}','${it[0].replace(/'/g,"")}')"><div class="name">${it[0]}${it[3]?" <span class='fire'>🔥</span>":""}<span class="zh">${it[1]}</span></div><div class="price">${it[2].toFixed(2)}</div></button>`).join("")).join("");
+  document.getElementById("chips").innerHTML = MENU.map((c,i)=>`<button type="button" class="${i===0?"on":""}" data-go="${c.id}">${c.title.split(" ")[0]}</button>`).join("");
+  document.getElementById("list").innerHTML = MENU.map(c=>`<div class="cat" id="${c.id}"><h2>${c.title}</h2><p>${c.blurb}</p></div>`+c.items.map((it,n)=>`<button type="button" class="item" data-cat="${c.id}" data-i="${n}"><div class="name">${it[0]}${it[3]?" <span class='fire'>🔥</span>":""}<span class="zh">${it[1]}</span></div><div class="price">${it[2].toFixed(2)}</div></button>`).join("")).join("");
   document.getElementById("count").textContent = cart.reduce((s,i)=>s+i.qty,0);
 }
+document.getElementById("list").addEventListener("click", e => {
+  const btn = e.target.closest(".item");
+  if (!btn) return;
+  openItem(btn.dataset.cat, Number(btn.dataset.i));
+});
+document.getElementById("chips").addEventListener("click", e => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  go(btn.dataset.go, btn);
+});
 function go(id, btn){ document.querySelectorAll(".cats button").forEach(b=>b.classList.remove("on")); btn.classList.add("on"); document.getElementById(id).scrollIntoView({behavior:"smooth", block:"start"}); }
 function optionRow(group, label, zh, checked){
   return `<label class="opt"><input type="radio" name="${group}" ${checked?"checked":""} onchange="current.${group}='${label} ${zh}'"><span>${label}<small>${zh}</small></span></label>`;
 }
-function openItem(catId, name){
+function openItem(catId, index){
   const cat = MENU.find(c=>c.id===catId);
-  const it = cat.items.find(x=>x[0]===name);
+  const it = cat.items[index];
+  if (!it) return;
   current = { cat:cat.title, combo:!!cat.combo, name:it[0], zh:it[1], price:it[2], spicy:!!it[3], soup:SOUPS[3].join(" "), rice:RICES[0].join(" "), spice:"Mild" };
   document.getElementById("dTitle").textContent = (it[0]+" "+it[1]).toUpperCase();
   document.getElementById("dPrice").textContent = money(it[2]);
