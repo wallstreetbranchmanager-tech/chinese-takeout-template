@@ -32,6 +32,8 @@ async function stripeSession(ticket, origin) {
   if (!key) return null;
   const params = new URLSearchParams();
   params.set("mode", "payment");
+  params.set("payment_method_types[0]", "card");
+  params.set("payment_method_options[card][request_three_d_secure]", "automatic");
   params.set("success_url", origin + "/paid.html?id=" + ticket.id + "&shop=" + ticket.slug + "&session_id={CHECKOUT_SESSION_ID}");
   params.set("cancel_url", origin + "/?pay=cancel");
   params.set("client_reference_id", ticket.id);
@@ -102,7 +104,7 @@ module.exports = async function handler(req, res) {
         const session = await check.json();
         if (session.payment_status !== "paid" || session.client_reference_id !== hit.id) return res.status(402).json({ error: "Stripe did not mark this paid." });
         hit.paid = true;
-        hit.payLabel = "CARD PAID";
+        hit.payLabel = hit.pay === "apple" ? "APPLE PAY" : hit.pay === "google" ? "GOOGLE PAY" : "CARD PAID";
         hit.status = "new";
       } else if (body.status) hit.status = body.status;
       await kvPut("t-" + shop + "-" + hit.id, JSON.stringify(hit));
