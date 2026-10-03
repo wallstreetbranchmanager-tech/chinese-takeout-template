@@ -249,6 +249,7 @@ function show(id){
   if (id==="menu") { renderList(); deadNames().then(dead => { document.querySelectorAll(".item").forEach(b => { if (dead.includes(b.querySelector(".name").childNodes[0].textContent.trim())) b.remove(); }); }); }
   if (id==="pay") document.getElementById("eta").textContent = eta();
   if (id==="brand"){ document.getElementById("fName").value=shop.name; document.getElementById("fTown").value=shop.town; document.getElementById("fStreet").value=shop.street; document.getElementById("fPhone").value=shop.phone; }
+  if (id!=="menu") { window.scrollTo(0,0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }
 }
 function findItem(id){
   for (const c of MENU) for (const it of c.items) if (c.id+"-"+it[0]===id) return { cat:c, it };
