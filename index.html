@@ -277,7 +277,7 @@ function openItem(catId, index){
   if (cat.id==="dinner" || cat.id==="lunch"){
     current.soup = "Wonton Soup";
     current.rice = "White Rice";
-    html += rows("soup", "Soup (Required)", [["Wonton Soup","雲吞湯"]]);
+    html += rows("soup", "Soup, Egg Roll or Soda (Required)", SOUPS);
     html += rows("rice", "Rice Choice (Required)", RICES);
   }
   if (cat.id==="apps"){
